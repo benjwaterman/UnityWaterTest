@@ -21,7 +21,7 @@ GameObject:
   - 4: {fileID: 4000011092244680}
   - 33: {fileID: 33000013024786008}
   - 23: {fileID: 23000013432644650}
-  - 114: {fileID: 114000014226660864}
+  - 114: {fileID: 114000012037737264}
   m_Layer: 0
   m_Name: WaterSphere
   m_TagString: Untagged
@@ -78,7 +78,7 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000011910327282}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114000014226660864
+--- !u!114 &114000012037737264
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -86,8 +86,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000011910327282}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c5c1f486e3962b45b0dd8ddcfd65221, type: 3}
+  m_Script: {fileID: 11500000, guid: 1787c8aac8073df4682472ec3b8b14da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   density: 0
   velocity: {x: 0, y: 0, z: 0}
+  isResting: 0
+  neighbourDensity:
+  - 0
+  - 0
+  - 0
+  - 0
+  hasNeighbourChanged: 00000000

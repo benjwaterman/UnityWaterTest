@@ -21,7 +21,6 @@ GameObject:
   - 4: {fileID: 4000013542795466}
   - 33: {fileID: 33000013216296522}
   - 23: {fileID: 23000012482335546}
-  - 114: {fileID: 114000010364117178}
   m_Layer: 0
   m_Name: WaterBlock
   m_TagString: Untagged
@@ -78,16 +77,3 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000011172963192}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114000010364117178
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000011172963192}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c5c1f486e3962b45b0dd8ddcfd65221, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  density: 0
-  velocity: {x: 0, y: 0, z: 0}

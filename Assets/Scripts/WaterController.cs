@@ -1,17 +1,30 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class WaterController : MonoBehaviour
 {
     public GameObject waterObject;
     public static int gridSizeX = 100;
     public static int gridSizeY = 100;
+    public static int gridSizeZ = 100;
+
+    /*    //Store velocity of each particle
+    Vector3[,,] particleVelocityArray = new Vector3[gridSizeX, gridSizeY, gridSizeZ];
+    //Store density of each particle
+    float[,,] particleDensityArray = new float[gridSizeX, gridSizeY, gridSizeZ];
+    //Store the particles
+    GameObject[,,] particleObjectArray = new GameObject[gridSizeX, gridSizeY, gridSizeZ];
+    //Store whether space is empty or not
+    bool[,,] isBlockEmptyArray = new bool[gridSizeX, gridSizeY, gridSizeZ];*/
+
+    Water[,] waterBlockArray = new Water[gridSizeX, gridSizeY];
 
     //Store velocity of each particle
-    Vector3[,] particleVelocityArray = new Vector3[gridSizeX, gridSizeY];
+    //Vector3[,] particleVelocityArray = new Vector3[gridSizeX, gridSizeY];
     //Store density of each particle
-    float[,] particleDensityArray = new float[gridSizeX, gridSizeY];
+    //float[,] particleDensityArray = new float[gridSizeX, gridSizeY];
     //Store the particles
     GameObject[,] particleObjectArray = new GameObject[gridSizeX, gridSizeY];
     //Store whether space is empty or not
@@ -29,24 +42,25 @@ public class WaterController : MonoBehaviour
 
     void Start()
     {
-        for (int i = 0; i < particleVelocityArray.GetLength(0); i++)
+        for (int i = 0; i < waterBlockArray.GetLength(0); i++)
         {
-            for (int j = 0; j < particleVelocityArray.GetLength(1); j++)
+            for (int j = 0; j < waterBlockArray.GetLength(1); j++)
             {
-                particleVelocityArray[i, j] = Vector3.zero;
-                particleDensityArray[i, j] = 0;
+                waterBlockArray[i, j] = new Water();
+                waterBlockArray[i, j].velocity = Vector3.zero;
+                waterBlockArray[i, j].density = 0;
             }
         }
         //Build block empty array before anything else
         BuildBlockEmptyArray();
 
         //Create starting block
-        CreateParticle(new Vector2(0, 0), 10000);
+        CreateParticle(new Vector2(0, 0), 100);
     }
 
     void Update()
     {
-        if (timePassed > 0)
+        if (timePassed > 0.5)
         {
             UpdateSim();
             timePassed = 0;
@@ -59,7 +73,7 @@ public class WaterController : MonoBehaviour
         int x = (int)position.x;
         int y = (int)position.y;
 
-        particleDensityArray[x, y] = startDensity;
+        waterBlockArray[x, y].density = startDensity;
         particleObjectArray[x, y] = (GameObject)Instantiate(waterObject, new Vector3(x, 0, y), Quaternion.identity);
         objectIndexList.Add(new Vector2(x, y));
     }
@@ -93,21 +107,27 @@ public class WaterController : MonoBehaviour
             int i = (int)position.x;
             int j = (int)position.y;
 
+            waterBlockArray[i, j].isResting = CheckIfShouldRest(i, j);
+
+            //If resting, don't do any comparisions
+            if (waterBlockArray[i, j].isResting)
+                return;
+
             //If this particle has water in it and is not at the lowest possible density
-            if (particleDensityArray[i, j] > minDensity)
+            if (waterBlockArray[i, j].density > minDensity)
             {
                 //Choose a random order to check the directions in, this prevents the water always going one way 
-                List<int> poss = new List<int> { 1, 2, 3, 4 };
+                List<int> poss = new List<int> { 0, 1, 2, 3 };
                 while (poss.Count >= 1)
                 {
                     int randIndex = Random.Range(0, poss.Count);
                     int randNum = poss[randIndex];
                     poss.RemoveAt(randIndex);
 
-                    //CheckNeighbourVelocity(i, j, randNum);
+                    CheckNeighbourVelocity(i, j, randNum);
                 }
 
-                poss = new List<int> { 1, 2, 3, 4 };
+                poss = new List<int> { 0, 1, 2, 3 };
                 while (poss.Count >= 1)
                 {
                     int randIndex = Random.Range(0, poss.Count);
@@ -118,10 +138,10 @@ public class WaterController : MonoBehaviour
                 }
 
                 //Move water block
-                float heightPos = Mathf.Clamp(particleDensityArray[i, j] / 5, 0.01f, 1f);
+                float heightPos = Mathf.Clamp(waterBlockArray[i, j].density / 5, 0.01f, 1f);
                 //Add the height of the terrain
                 heightPos += 1;
-                if (particleDensityArray[i, j] >= minDensity)
+                if (waterBlockArray[i, j].density >= minDensity)
                 {
                     //Create new water object if one doesnt exist at new positions
                     if (particleObjectArray[i, j] == null)
@@ -138,9 +158,12 @@ public class WaterController : MonoBehaviour
                     }
 
                     //Update the density and velocity on the object
-                    Water water = particleObjectArray[i, j].GetComponent<Water>();
-                    water.density = particleDensityArray[i, j];
-                    water.velocity = particleVelocityArray[i, j];
+                    WaterInfo water = particleObjectArray[i, j].GetComponent<WaterInfo>();
+                    water.density = waterBlockArray[i, j].density;
+                    water.velocity = waterBlockArray[i, j].velocity;
+                    water.isResting = waterBlockArray[i, j].isResting;
+                    water.neighbourDensity = waterBlockArray[i, j].neighbourDensity;
+                    water.hasNeighbourChanged = waterBlockArray[i, j].hasNeighbourChanged;
 
                     //particleObjectArray[i, j].transform.position = new Vector3(i, heightPos, j);
                     //waterObjectList.Add((GameObject)Instantiate(waterObject, new Vector3(i, heightPos, j), Quaternion.identity));
@@ -161,38 +184,39 @@ public class WaterController : MonoBehaviour
         if (!isBlockEmptyArray[otherX, otherZ])
             return;
 
-        float density = particleDensityArray[thisX, thisZ];
+        float density = waterBlockArray[thisX, thisZ].density;
 
         switch (neighbourIndex)
         {
-            case 1:
+            case 0:
                 otherX += 1;
                 break;
 
-            case 2:
+            case 1:
                 otherX -= 1;
                 break;
 
-            case 3:
+            case 2:
                 otherZ += 1;
                 break;
 
-            case 4:
+            case 3:
                 otherZ -= 1;
                 break;
 
             default:
+                Debug.Log("neigbour index out of range: " + neighbourIndex);
                 break;
         }
 
         //Check within bounds of array, if not exit function
-        if (!(otherX < particleDensityArray.GetLength(0) && otherX >= 0))
+        if (!(otherX < waterBlockArray.GetLength(0) && otherX >= 0))
             return;
-        if (!(otherZ < particleDensityArray.GetLength(1) && otherZ >= 0))
+        if (!(otherZ < waterBlockArray.GetLength(1) && otherZ >= 0))
             return;
 
         //If neigbour density is less then this density
-        if (density > particleDensityArray[otherX, otherZ])
+        if (density > waterBlockArray[otherX, otherZ].density)
         {
             MoveParticleTo(thisX, thisZ, otherX, otherZ);
         }
@@ -208,34 +232,35 @@ public class WaterController : MonoBehaviour
         if (!isBlockEmptyArray[otherX, otherZ])
             return;
 
-        Vector3 velocity = particleVelocityArray[thisX, thisZ];
+        Vector3 velocity = waterBlockArray[thisX, thisZ].velocity;
 
         switch (neighbourIndex)
         {
-            case 1:
+            case 0:
                 otherX += 1;
                 break;
 
-            case 2:
+            case 1:
                 otherX -= 1;
                 break;
 
-            case 3:
+            case 2:
                 otherZ += 1;
                 break;
 
-            case 4:
+            case 3:
                 otherZ -= 1;
                 break;
 
             default:
+                Debug.Log("neigbour index out of range: " + neighbourIndex);
                 break;
         }
 
         //Check within bounds of array, if not exit function
-        if (!(otherX < particleVelocityArray.GetLength(0) && otherX >= 0))
+        if (!(otherX < waterBlockArray.GetLength(0) && otherX >= 0))
             return;
-        if (!(otherZ < particleVelocityArray.GetLength(1) && otherZ >= 0))
+        if (!(otherZ < waterBlockArray.GetLength(1) && otherZ >= 0))
             return;
 
         //If this is checking the same direction as velocity
@@ -246,14 +271,39 @@ public class WaterController : MonoBehaviour
         }
     }
 
+    bool CheckIfShouldRest(int thisX, int thisZ)
+    {
+        // If current neighbour density == old density, use i++ rather than another foreach
+        foreach (float density in waterBlockArray[thisX, thisZ].neighbourDensity)
+        {
+            if (density == )
+
+            //If density this update is same as last update, neighbour changed = false
+            if (waterBlockArray[thisX, thisZ].neighbourDensity[neighbourIndex] == waterBlockArray[otherX, otherZ].density && waterBlockArray[thisX, thisZ].neighbourDensity[neighbourIndex] == -1)
+            {
+                waterBlockArray[thisX, thisZ].hasNeighbourChanged[neighbourIndex] = false;
+
+                //Sets the water as true if all neighbours have not changed since last update
+                waterBlockArray[thisX, thisZ].isResting = !waterBlockArray[thisX, thisZ].hasNeighbourChanged.Contains(true);//System.Array.Exists(waterBlockArray[thisX, thisZ].hasNeighbourChanged, delegate (bool x) { return !x; });
+            }
+
+            //If not store density of neighbour
+            else
+            {
+                waterBlockArray[thisX, thisZ].hasNeighbourChanged[neighbourIndex] = true;
+                waterBlockArray[thisX, thisZ].neighbourDensity[neighbourIndex] = waterBlockArray[otherX, otherZ].density;
+            }
+        }
+    }
+
     void MoveParticleTo(int thisX, int thisZ, int otherX, int otherZ)
     {
         //Add density to other particle
-        particleDensityArray[otherX, otherZ] += baseFlowRate;
+        waterBlockArray[otherX, otherZ].density += baseFlowRate;
         //Lower density of this particle
-        particleDensityArray[thisX, thisZ] -= baseFlowRate;
+        waterBlockArray[thisX, thisZ].density -= baseFlowRate;
         //Set velocity based on direction
-        particleVelocityArray[thisX, thisZ] = new Vector3(otherX - thisX, 0, otherZ - thisZ);
+        waterBlockArray[thisX, thisZ].velocity = new Vector3(otherX - thisX, 0, otherZ - thisZ);
 
         //If object has not yet been instantiated, add it to the index list so it will be
         if (particleObjectArray[otherX, otherZ] == null)
