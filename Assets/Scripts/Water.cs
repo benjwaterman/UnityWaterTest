@@ -6,7 +6,8 @@ public class Water
     public float density;
     public Vector3 velocity;
     public bool isResting;
-    public float[] neighbourDensity = new float[4];
+    public float[] currentNeighbourDensity = new float[4];
+    public float[] oldNeighbourDensity = new float[4];
     public bool[] hasNeighbourChanged = new bool[4];
 
     public Water()
@@ -15,9 +16,10 @@ public class Water
         velocity = Vector3.zero;
         isResting = false;
 
-        for (int i = 0; i < neighbourDensity.Length; i++)
+        for (int i = 0; i < currentNeighbourDensity.Length; i++)
         {
-            neighbourDensity[i] = -1;
+            currentNeighbourDensity[i] = -1;
+            oldNeighbourDensity[i] = -2;
             hasNeighbourChanged[i] = true;
         }
     }

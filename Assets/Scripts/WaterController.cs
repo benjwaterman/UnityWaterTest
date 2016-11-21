@@ -60,7 +60,7 @@ public class WaterController : MonoBehaviour
 
     void Update()
     {
-        if (timePassed > 0.5)
+        if (timePassed > 1)
         {
             UpdateSim();
             timePassed = 0;
@@ -109,9 +109,9 @@ public class WaterController : MonoBehaviour
 
             waterBlockArray[i, j].isResting = CheckIfShouldRest(i, j);
 
-            //If resting, don't do any comparisions
-            if (waterBlockArray[i, j].isResting)
-                return;
+            //If resting, don't do any comparisions //SHOULD IGNORE IF JUST CREATED PARTICLE IF NOT IT WILL NEVER SPAWN NEW ONES
+            //if (waterBlockArray[i, j].isResting)
+                //return;
 
             //If this particle has water in it and is not at the lowest possible density
             if (waterBlockArray[i, j].density > minDensity)
@@ -162,7 +162,8 @@ public class WaterController : MonoBehaviour
                     water.density = waterBlockArray[i, j].density;
                     water.velocity = waterBlockArray[i, j].velocity;
                     water.isResting = waterBlockArray[i, j].isResting;
-                    water.neighbourDensity = waterBlockArray[i, j].neighbourDensity;
+                    water.oldNeighbourDensity = waterBlockArray[i, j].oldNeighbourDensity;
+                    water.currentNeighbourDensity = waterBlockArray[i, j].currentNeighbourDensity;
                     water.hasNeighbourChanged = waterBlockArray[i, j].hasNeighbourChanged;
 
                     //particleObjectArray[i, j].transform.position = new Vector3(i, heightPos, j);
@@ -220,6 +221,25 @@ public class WaterController : MonoBehaviour
         {
             MoveParticleTo(thisX, thisZ, otherX, otherZ);
         }
+
+        //Set the old density
+        waterBlockArray[thisX, thisZ].oldNeighbourDensity = waterBlockArray[thisX, thisZ].currentNeighbourDensity;
+        //Set the current density
+        waterBlockArray[thisX, thisZ].currentNeighbourDensity[neighbourIndex] = waterBlockArray[otherX, otherZ].density;
+
+        /*
+
+        //If old density == current density
+        if (waterBlockArray[thisX, thisZ].oldNeighbourDensity[neighbourIndex] == waterBlockArray[otherX, otherZ].density)
+        {
+            //Density has changed since last update
+            waterBlockArray[thisX, thisZ].hasNeighbourChanged[i] = true;
+            //Set the old density
+            waterBlockArray[thisX, thisZ].oldNeighbourDensity = waterBlockArray[thisX, thisZ].currentNeighbourDensity;
+            //Set the current density
+            waterBlockArray[thisX, thisZ].currentNeighbourDensity[i] = waterBlockArray[otherX, otherZ].density;
+        }
+        */
     }
 
     void CheckNeighbourVelocity(int i, int j, int neighbourIndex)
@@ -273,27 +293,24 @@ public class WaterController : MonoBehaviour
 
     bool CheckIfShouldRest(int thisX, int thisZ)
     {
+        int i = 0;
         // If current neighbour density == old density, use i++ rather than another foreach
-        foreach (float density in waterBlockArray[thisX, thisZ].neighbourDensity)
+        foreach (float density in waterBlockArray[thisX, thisZ].currentNeighbourDensity)
         {
-            if (density == )
-
-            //If density this update is same as last update, neighbour changed = false
-            if (waterBlockArray[thisX, thisZ].neighbourDensity[neighbourIndex] == waterBlockArray[otherX, otherZ].density && waterBlockArray[thisX, thisZ].neighbourDensity[neighbourIndex] == -1)
+            //Debug.Log("Comparing " + density + " with " + waterBlockArray[thisX, thisZ].oldNeighbourDensity[i]);
+            if ((int)density == (int)waterBlockArray[thisX, thisZ].oldNeighbourDensity[i])
             {
-                waterBlockArray[thisX, thisZ].hasNeighbourChanged[neighbourIndex] = false;
-
-                //Sets the water as true if all neighbours have not changed since last update
-                waterBlockArray[thisX, thisZ].isResting = !waterBlockArray[thisX, thisZ].hasNeighbourChanged.Contains(true);//System.Array.Exists(waterBlockArray[thisX, thisZ].hasNeighbourChanged, delegate (bool x) { return !x; });
+                waterBlockArray[thisX, thisZ].hasNeighbourChanged[i] = false;
+                i++;
             }
-
-            //If not store density of neighbour
             else
             {
-                waterBlockArray[thisX, thisZ].hasNeighbourChanged[neighbourIndex] = true;
-                waterBlockArray[thisX, thisZ].neighbourDensity[neighbourIndex] = waterBlockArray[otherX, otherZ].density;
+                waterBlockArray[thisX, thisZ].hasNeighbourChanged[i] = true;
+                i++;
             }
         }
+        //Sets the water as true if all neighbours have not changed since last update
+        return !waterBlockArray[thisX, thisZ].hasNeighbourChanged.Contains(true);
     }
 
     void MoveParticleTo(int thisX, int thisZ, int otherX, int otherZ)
