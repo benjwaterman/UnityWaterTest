@@ -4,7 +4,7 @@ using System.Collections;
 public enum Direction { xPositive, xNegative, zPositive, zNegative };
 public enum WaterDataType { velocity, density };
 
-public class Water
+public class Water //TODO rename WaterCell
 {
     //Stores the data for this water
     public WaterData data = new WaterData();
@@ -13,7 +13,7 @@ public class Water
 
     public Water()
     {
-        data.density = 0;
+        data.density = 0; //rename to volume
         data.previousDensity = -1;
         data.hasDensityChanged = true;
         data.isResting = false;
@@ -49,6 +49,7 @@ public class Water
         data.position = position;
     }
 
+    // comment
     public WaterData getNeighbourData(Direction direction)
     {
         switch (direction)
