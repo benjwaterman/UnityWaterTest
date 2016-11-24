@@ -12,7 +12,7 @@ public class WaterCell
     public int id;
     public float volume;
     public float previousVolume;
-    public bool hasDensityChanged;
+    public bool hasVolumeChanged;
     public bool isResting;
     public Vector3 position;
     public Vector3 velocity;
@@ -22,7 +22,7 @@ public class WaterCell
     {
         volume = 0;
         previousVolume = -1;
-        hasDensityChanged = true;
+        hasVolumeChanged = true;
         isResting = false;
         velocity = Vector3.zero;
         position = Vector3.zero;
@@ -39,7 +39,7 @@ public class WaterCell
 
         //Default values
         previousVolume = -1;
-        hasDensityChanged = true;
+        hasVolumeChanged = true;
         isResting = false;
     }
 

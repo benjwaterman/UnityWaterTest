@@ -42,8 +42,8 @@ public class WaterController : MonoBehaviour
     //Buffer so objectIndexList isn't edited while looping through it
     List<Vector2> objectIndexListBuffer = new List<Vector2>();
 
-    float maxDensity = 100;
-    float minDensity = 0;
+    float maxVolume = 100;
+    float minVolume = 0.01f;
     float baseFlowRate = 0.1f;
     float timePassed = 0;
     float waterCounter = 1;
@@ -73,12 +73,13 @@ public class WaterController : MonoBehaviour
         BuildBlockEmptyArray();
 
         //Create starting block
-        CreateParticle(new Vector2(3, 3), 10000);
+        CreateParticle(new Vector2(1, 10), 10000);
+        CreateParticle(new Vector2(10, 1), 10000);
     }
 
     void Update()
     {
-        if (timePassed > 0.5)
+        if (timePassed > 0)
         {
             UpdateSim();
             timePassed = 0;
@@ -95,7 +96,7 @@ public class WaterController : MonoBehaviour
         waterCellArray[x, y].volume = volume;
         //Create gameobject
         waterCellArray[x, y].setGameObject((GameObject)Instantiate(waterObject, new Vector3(x, 1, y), Quaternion.identity));
-        //Add to keep track
+        //Add to buffer to keep track of water
         objectIndexListBuffer.Add(new Vector2(x, y));
         waterCellArray[x, y].getGameObject().GetComponent<WaterInfo>().position = new Vector2(x, y);
     }
@@ -132,26 +133,17 @@ public class WaterController : MonoBehaviour
             int i = (int)position.x;
             int j = (int)position.y;
 
-            //waterCellArray[i, j].data.isResting = CheckIfShouldRest(i, j);
+            //Set cells to resting or not
+            //waterCellArray[i, j].isResting = CheckIfShouldRest(i, j);
 
             //If resting, don't do any comparisions //SHOULD IGNORE IF JUST CREATED PARTICLE IF NOT IT WILL NEVER SPAWN NEW ONES
             if (waterCellArray[i, j].isResting)
-            return;
+                return;
 
             //If this particle has water in it and is not at the lowest possible volume
-            if (waterCellArray[i, j].volume > minDensity) //NEED TO MAKE THIS DIFFERENCE BETWEEN 2 BLOCKS SO THEY ARENT ALWAYS TRYING TO FLOW WATER WHEN IT IS LIKE 0.1^10 THANKS BEN YOU BEAUITIFUL MAN
+            if (waterCellArray[i, j].volume > minVolume)
             {
                 //Choose a random order to check the directions in, this prevents the water always going one way 
-                //List<Direction> poss = new List<Direction> { Direction.xNegative, Direction.xPositive, Direction.zNegative, Direction.zPositive };
-                //while (poss.Count >= 1)
-                //{
-                //    int randIndex = Random.Range(0, poss.Count);
-                //    Direction randDir = poss[randIndex];
-                //    poss.RemoveAt(randIndex);
-
-                //    //CheckNeighbourVelocity(i, j, randDir);
-                //}
-
                 List<Direction> poss = new List<Direction> { Direction.xNegative, Direction.xPositive, Direction.zNegative, Direction.zPositive };
                 while (poss.Count >= 1)
                 {
@@ -159,14 +151,14 @@ public class WaterController : MonoBehaviour
                     Direction randDir = poss[randIndex];
                     poss.RemoveAt(randIndex);
 
-                    CheckNeighbourDensity(i, j, randDir);
+                    CheckNeighbourVolume(i, j, randDir);
                 }
 
                 //Move water block
                 float heightPos = Mathf.Clamp(waterCellArray[i, j].volume / 5, 0.01f, 1f);
                 //Add the height of the terrain
                 heightPos += 1;
-                if (waterCellArray[i, j].volume >= minDensity)
+                if (waterCellArray[i, j].volume >= minVolume)
                 {
                     //Create new water object if one doesnt exist at new positions
                     if (waterCellArray[i, j].getGameObject() == null)
@@ -187,11 +179,11 @@ public class WaterController : MonoBehaviour
     }
 
     //Check neighbours
-    void CheckNeighbourDensity(int i, int j, Direction direction)
+    void CheckNeighbourVolume(int i, int j, Direction direction)
     {
         //If block is not empty it cant move there, exit out of function
         //As border of array is all marked as not free, this should stop any comparisions out of the array bounds
-        if (!isBlockEmptyArray[i, j] && !waterCellArray[i, j].isInRange(direction))
+        if (!isBlockEmptyArray[i, j] || !waterCellArray[i, j].isInRange(direction))
             return;
 
         float volume = waterCellArray[i, j].volume;
@@ -202,6 +194,10 @@ public class WaterController : MonoBehaviour
 
         //If neigbour volume is less then this volume
         float flowAmount = (volume - neighbourVolume) * baseFlowRate;
+        //If flow amount is really small, ignore it
+        if (flowAmount <= minVolume)
+            return;
+
         //Stop doing this twice by ensuring this id appears before neighbour id, if not then calculations between these two cells have already been applied
         if (waterCellArray[i, j].id < waterCellArray[i, j].getNeighbourData(direction).id)
         {
@@ -210,10 +206,20 @@ public class WaterController : MonoBehaviour
                 //Adds object to buffer
                 objectIndexListBuffer.Add(new Vector2(i, j) + getVec2FromDirection(direction));
 
+            //Update volume information
             waterCellArray[i, j].setNeighbourData(direction, WaterDataType.volume, neighbourVolume + flowAmount, Vector3.zero);
             waterCellArray[i, j].volume -= flowAmount;
         }
 
+        //If min volume is greater than difference between volume this update and last, volume has not changed
+        if(minVolume >= (waterCellArray[i, j].volume - waterCellArray[i, j].previousVolume))
+        {
+            waterCellArray[i, j].hasVolumeChanged = false;
+        }
+        else
+        {
+            waterCellArray[i, j].hasVolumeChanged = true;
+        }
     }
 
     Vector2 getVec2FromDirection(Direction dir)
@@ -233,91 +239,15 @@ public class WaterController : MonoBehaviour
         }
     }
 
-    //void CheckNeighbourVelocity(int i, int j, Direction direction)
-    //{
-    //    int thisX = i;
-    //    int thisZ = j;
-    //    int otherX = i;
-    //    int otherZ = j;
+    bool CheckIfShouldRest(int thisX, int thisZ)
+    {
+        //Sets the water as true if all neighbours have not changed since last update
+        if (!waterCellArray[thisX, thisZ].getNeighbourData().xPositive.hasVolumeChanged &&
+            !waterCellArray[thisX, thisZ].getNeighbourData().xNegative.hasVolumeChanged &&
+            !waterCellArray[thisX, thisZ].getNeighbourData().xPositive.hasVolumeChanged &&
+            !waterCellArray[thisX, thisZ].getNeighbourData().zNegative.hasVolumeChanged)
+            return true;   
 
-    //    if (!isBlockEmptyArray[otherX, otherZ])
-    //        return;
-
-    //    Vector3 velocity = waterCellArray[thisX, thisZ].velocity;
-
-    //    switch (neighbourIndex)
-    //    {
-    //        case 0:
-    //            otherX += 1;
-    //            break;
-
-    //        case 1:
-    //            otherX -= 1;
-    //            break;
-
-    //        case 2:
-    //            otherZ += 1;
-    //            break;
-
-    //        case 3:
-    //            otherZ -= 1;
-    //            break;
-
-    //        default:
-    //            Debug.Log("neigbour index out of range: " + neighbourIndex);
-    //            break;
-    //    }
-
-    //    //Check within bounds of array, if not exit function
-    //    if (!(otherX < waterCellArray.GetLength(0) && otherX >= 0))
-    //        return;
-    //    if (!(otherZ < waterCellArray.GetLength(1) && otherZ >= 0))
-    //        return;
-
-    //    //If this is checking the same direction as velocity
-    //    if (velocity.x >= 1 && otherX - thisX >= 1)
-    //    {
-    //        //Continue going this way
-    //        MoveParticleTo(thisX, thisZ, otherX, otherZ);
-    //    }
-    //}
-
-    //bool CheckIfShouldRest(int thisX, int thisZ)
-    //{
-    //    for (int i = 0; i < waterCellArray.; i++)
-    //    {
-    //        for (int j = 0; j < waterCellArray.GetLength(1); j++)
-    //        {
-    //            waterCellArray
-    //            //Debug.Log("Comparing " + volume + " with " + waterCellArray[thisX, thisZ].oldNeighbourDensity[i]);
-    //            if (volume == waterCellArray[thisX, thisZ].oldNeighbourDensity[i])
-    //            {
-    //                waterCellArray[thisX, thisZ].hasNeighbourChanged[i] = false;
-    //                i++;
-    //            }
-    //            else
-    //            {
-    //                waterCellArray[thisX, thisZ].hasNeighbourChanged[i] = true;
-    //                i++;
-    //            }
-    //        }
-    //    }
-    //    //Sets the water as true if all neighbours have not changed since last update
-    //    return !waterCellArray[thisX, thisZ].hasNeighbourChanged.Contains(true);
-    //}
-
-    //void MoveParticleTo(int thisX, int thisZ, int otherX, int otherZ)
-    //{
-    //    //Add volume to other particle
-    //    waterCellArray[otherX, otherZ].volume += baseFlowRate;
-    //    //Lower volume of this particle
-    //    waterCellArray[thisX, thisZ].volume -= baseFlowRate;
-    //    //Set velocity based on direction
-    //    waterCellArray[thisX, thisZ].velocity = new Vector3(otherX - thisX, 0, otherZ - thisZ);
-
-    //    //If object has not yet been instantiated, add it to the index list so it will be
-    //    if (particleObjectArray[otherX, otherZ] == null)
-    //        //Adds object to buffer
-    //        objectIndexListBuffer.Add(new Vector2(otherX, otherZ));
-    //}
+        return false;
+    }
 }

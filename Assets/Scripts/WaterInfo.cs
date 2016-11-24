@@ -12,7 +12,7 @@ public class WaterInfo : MonoBehaviour
     public float zPositiveVolume;
     public float zNegativeVolume;
 
-    public Vector3 velocity;
+    public bool hasVolumeChanged;
     public bool isResting;
     public Vector2 position;
 
@@ -37,6 +37,8 @@ public class WaterInfo : MonoBehaviour
         id = thisCell.id;
         volume = thisCell.volume;
         previousVolume = thisCell.previousVolume;
+        hasVolumeChanged = thisCell.hasVolumeChanged;
+        isResting = thisCell.isResting;
 
         xPositiveVolume = xPositiveNeighbour.volume;
         xNegativeVolume = xNegativeNeighbour.volume;
