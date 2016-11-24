@@ -4,7 +4,7 @@ using System.Collections;
 public enum Direction { xPositive, xNegative, zPositive, zNegative };
 public enum WaterDataType { velocity, density };
 
-public class Water
+public class Water //TODO rename WaterCell
 {
     //Stores the data for this water
     public WaterData data = new WaterData();
