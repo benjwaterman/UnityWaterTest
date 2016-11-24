@@ -2,35 +2,61 @@
 using System.Collections;
 
 public enum Direction { xPositive, xNegative, zPositive, zNegative };
-public enum WaterDataType { velocity, density };
+public enum WaterDataType { velocity, volume };
 
-public class Water
+public class WaterCell
 {
-    //Stores the data for this water
-    public WaterData data = new WaterData();
     //GameObject this data refers to
     GameObject waterGameObject;
+    //Keep track of each id
+    public int id;
+    public float volume;
+    public float previousVolume;
+    public bool hasDensityChanged;
+    public bool isResting;
+    public Vector3 position;
+    public Vector3 velocity;
+    public NeighbourWaterCell neighbour;
 
-    public Water()
+    public WaterCell()
     {
-        data.density = 0;
-        data.previousDensity = -1;
-        data.hasDensityChanged = true;
-        data.isResting = false;
-        data.velocity = Vector3.zero;
-        data.position = Vector3.zero;
+        volume = 0;
+        previousVolume = -1;
+        hasDensityChanged = true;
+        isResting = false;
+        velocity = Vector3.zero;
+        position = Vector3.zero;
+
+        //Must manually populate neighbour references if using this method
     }
 
-    public Water(float density, Vector3 velocity, Vector3 position)
+    public WaterCell(float volume, Vector3 velocity, Vector3 position, int id)
     {
-        data.density = density;
-        data.velocity = velocity;
-        data.position = position;
+        this.volume = volume;
+        this.velocity = velocity;
+        this.position = position;
+        this.id = id;
 
         //Default values
-        data.previousDensity = -1;
-        data.hasDensityChanged = true;
-        data.isResting = false;
+        previousVolume = -1;
+        hasDensityChanged = true;
+        isResting = false;
+    }
+
+    public void populateNeighbourReferences()
+    {
+        //Check if array index is in range, if it is assign reference
+        if (isInRange(Direction.xPositive))
+            neighbour.xPositive = WaterController.Current.waterCellArray[(int)position.x + 1, (int)position.z];
+
+        if (isInRange(Direction.xNegative))
+            neighbour.xNegative= WaterController.Current.waterCellArray[(int)position.x - 1, (int)position.z];
+
+        if (isInRange(Direction.zPositive))
+            neighbour.zPositive = WaterController.Current.waterCellArray[(int)position.x, (int)position.z + 1];
+
+        if (isInRange(Direction.zNegative))
+            neighbour.zNegative = WaterController.Current.waterCellArray[(int)position.x, (int)position.z - 1];
     }
 
     public void setGameObject(GameObject go)
@@ -46,35 +72,36 @@ public class Water
     public void transformGameObject(Vector3 position)
     {
         waterGameObject.transform.position = position;
-        data.position = position;
+        this.position = position;
     }
 
-    public WaterData getNeighbourData(Direction direction)
+    public WaterCell getNeighbourData(Direction direction)
     {
         switch (direction)
         {
             case Direction.xPositive:
-                if (!isInRange((int)data.position.x, direction))
-                    return new WaterData(1000000);
-                return WaterController.Current.waterBlockArray[(int)data.position.x + 1, (int)data.position.z].data;
+                if (neighbour.xPositive == null)
+                {
+                    int i = 0;
+                }
+                return neighbour.xPositive;
             case Direction.xNegative:
-                if (!isInRange((int)data.position.x, direction))
-                    return new WaterData(1000000);
-                return WaterController.Current.waterBlockArray[(int)data.position.x - 1, (int)data.position.z].data;
+                return neighbour.xNegative;
             case Direction.zPositive:
-                if (!isInRange((int)data.position.z, direction))
-                    return new WaterData(1000000);
-                return WaterController.Current.waterBlockArray[(int)data.position.x, (int)data.position.z + 1].data;
+                return neighbour.zPositive;
             case Direction.zNegative:
-                if (!isInRange((int)data.position.z, direction))
-                    return new WaterData(1000000);
-                return WaterController.Current.waterBlockArray[(int)data.position.x, (int)data.position.z - 1].data;
+                return neighbour.zNegative;
             default:
                 return null;
         }
     }
 
-    public void setNeighbourData(Direction direction, WaterDataType dataType, float dens, Vector3 vel)
+    public NeighbourWaterCell getNeighbourData()
+    {
+        return neighbour;
+    }
+
+    public void setNeighbourData(Direction direction, WaterDataType dataType, float vol, Vector3 vel)
     {
         if (dataType == WaterDataType.velocity)
         {
@@ -86,37 +113,37 @@ public class Water
             switch (direction)
             {
                 case Direction.xPositive:
-                    WaterController.Current.waterBlockArray[(int)data.position.x + 1, (int)data.position.z].data.velocity = vel;
+                    neighbour.xPositive.velocity = vel;
                     break;
                 case Direction.xNegative:
-                    WaterController.Current.waterBlockArray[(int)data.position.x - 1, (int)data.position.z].data.velocity = vel;
+                    neighbour.xNegative.velocity = vel;
                     break;
                 case Direction.zPositive:
-                    WaterController.Current.waterBlockArray[(int)data.position.x, (int)data.position.z + 1].data.velocity = vel;
+                    neighbour.zPositive.velocity = vel;
                     break;
                 case Direction.zNegative:
-                    WaterController.Current.waterBlockArray[(int)data.position.x, (int)data.position.z - 1].data.velocity = vel;
+                    neighbour.zNegative.velocity = vel;
                     break;
                 default:
                     break;
             }
         }
 
-        else if (dataType == WaterDataType.density)
+        else if (dataType == WaterDataType.volume)
         {
             switch (direction)
             {
                 case Direction.xPositive:
-                    WaterController.Current.waterBlockArray[(int)data.position.x + 1, (int)data.position.z].data.density = dens;
+                    neighbour.xPositive.volume = vol;
                     break;
                 case Direction.xNegative:
-                    WaterController.Current.waterBlockArray[(int)data.position.x - 1, (int)data.position.z].data.density = dens;
+                    neighbour.xNegative.volume = vol;
                     break;
                 case Direction.zPositive:
-                    WaterController.Current.waterBlockArray[(int)data.position.x, (int)data.position.z + 1].data.density = dens;
+                    neighbour.zPositive.volume = vol;
                     break;
                 case Direction.zNegative:
-                    WaterController.Current.waterBlockArray[(int)data.position.x, (int)data.position.z - 1].data.density = dens;
+                    neighbour.zNegative.volume = vol;
                     break;
                 default:
                     break;
@@ -124,55 +151,42 @@ public class Water
         }
     }
 
-    bool isInRange(int position, Direction dir)
+    public bool isInRange(Direction dir)
     {
-        int xLength = WaterController.Current.waterBlockArray.GetLength(0);
-        int zLength = WaterController.Current.waterBlockArray.GetLength(1);
+        int xLength = WaterController.Current.waterCellArray.GetLength(0);
+        int zLength = WaterController.Current.waterCellArray.GetLength(1);
         switch (dir)
         {
             case Direction.xPositive:
-                if (position + 1 < xLength)
+                if (position.x + 1 < xLength)
                     return true;
                 return false;
+
             case Direction.xNegative:
-                if (position - 1 >= 0)
+                if (position.x - 1 >= 0)
                     return true;
                 return false;
+
             case Direction.zPositive:
-                if (position + 1 < zLength)
+                if (position.z + 1 < zLength)
                     return true;
                 return false;
+
             case Direction.zNegative:
-                if (position - 1 >= 0)
+                if (position.z - 1 >= 0)
                     return true;
                 return false;
+
             default:
                 return false;
         }
     }
 }
 
-public class WaterData
+public struct NeighbourWaterCell
 {
-    public float density;
-    public float previousDensity;
-    public bool hasDensityChanged;
-    public bool isResting;
-    public Vector3 position;
-    public Vector3 velocity;
-
-    public WaterData()
-    {
-        density = 0;
-        previousDensity = -1;
-        hasDensityChanged = true;
-        isResting = false;
-        position = Vector3.zero;
-        velocity = Vector3.zero;
-    }
-
-    public WaterData(float dens)
-    {
-        density = dens;
-    }
+    public WaterCell xPositive;
+    public WaterCell xNegative;
+    public WaterCell zPositive;
+    public WaterCell zNegative;
 }
