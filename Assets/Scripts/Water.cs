@@ -13,7 +13,7 @@ public class Water
 
     public Water()
     {
-        data.density = 0;
+        data.density = 0; //rename to volume
         data.previousDensity = -1;
         data.hasDensityChanged = true;
         data.isResting = false;
