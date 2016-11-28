@@ -40,10 +40,17 @@ public class WaterInfo : MonoBehaviour
         hasVolumeChanged = thisCell.hasVolumeChanged;
         isResting = thisCell.isResting;
 
-        xPositiveVolume = xPositiveNeighbour.volume;
-        xNegativeVolume = xNegativeNeighbour.volume;
-        zPositiveVolume = zPositiveNeighbour.volume;
-        zNegativeVolume = zNegativeNeighbour.volume;
+        if(xPositiveNeighbour != null)
+            xPositiveVolume = xPositiveNeighbour.volume;
+
+        if (xNegativeNeighbour != null)
+            xNegativeVolume = xNegativeNeighbour.volume;
+
+        if (zPositiveNeighbour != null)
+            zPositiveVolume = zPositiveNeighbour.volume;
+
+        if (zNegativeNeighbour != null)
+            zNegativeVolume = zNegativeNeighbour.volume;
     }
 
 }

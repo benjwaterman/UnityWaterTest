@@ -42,8 +42,8 @@ public class WaterController : MonoBehaviour
     //Buffer so objectIndexList isn't edited while looping through it
     List<Vector2> objectIndexListBuffer = new List<Vector2>();
 
-    float maxVolume = 100;
-    float minVolume = 0.01f;
+    float maxVolume = 2;
+    float minVolume = 0.005f;
     float baseFlowRate = 0.1f;
     float timePassed = 0;
     float waterCounter = 1;
@@ -73,13 +73,13 @@ public class WaterController : MonoBehaviour
         BuildBlockEmptyArray();
 
         //Create starting block
-        CreateParticle(new Vector2(1, 10), 10000);
-        CreateParticle(new Vector2(10, 1), 10000);
+        CreateParticle(new Vector2(10, 10), 35000);
+        //CreateParticle(new Vector2(20, 20), 10000);
     }
 
     void Update()
     {
-        if (timePassed > 0)
+        if (timePassed > 0.1)
         {
             UpdateSim();
             timePassed = 0;
@@ -95,7 +95,7 @@ public class WaterController : MonoBehaviour
         //Set volume
         waterCellArray[x, y].volume = volume;
         //Create gameobject
-        waterCellArray[x, y].setGameObject((GameObject)Instantiate(waterObject, new Vector3(x, 1, y), Quaternion.identity));
+        waterCellArray[x, y].setGameObject((GameObject)Instantiate(waterObject, new Vector3(x, -1, y), Quaternion.identity));
         //Add to buffer to keep track of water
         objectIndexListBuffer.Add(new Vector2(x, y));
         waterCellArray[x, y].getGameObject().GetComponent<WaterInfo>().position = new Vector2(x, y);
@@ -133,6 +133,23 @@ public class WaterController : MonoBehaviour
             int i = (int)position.x;
             int j = (int)position.y;
 
+            //If volume difference is less than minVolume, water has not changed
+            if (minVolume >= Mathf.Abs(waterCellArray[i, j].volume - waterCellArray[i, j].previousVolume))
+            {
+                waterCellArray[i, j].hasVolumeChanged = false;
+            }
+            else
+            {
+                waterCellArray[i, j].hasVolumeChanged = true;
+                //Set all neighbours to not resting
+                //waterCellArray[i, j].neighbours.xPositive.isResting = false;
+                //waterCellArray[i, j].neighbours.xNegative.isResting = false;
+                //waterCellArray[i, j].neighbours.zPositive.isResting = false;
+                //waterCellArray[i, j].neighbours.zNegative.isResting = false;
+            }
+            //Set the previous volume to current volume
+            waterCellArray[i, j].previousVolume = waterCellArray[i, j].volume;
+
             //Set cells to resting or not
             //waterCellArray[i, j].isResting = CheckIfShouldRest(i, j);
 
@@ -140,24 +157,56 @@ public class WaterController : MonoBehaviour
             if (waterCellArray[i, j].isResting)
                 return;
 
+            //Clear comparisons from last update
+            waterCellArray[i, j].clearComparisons();
+
             //If this particle has water in it and is not at the lowest possible volume
-            if (waterCellArray[i, j].volume > minVolume)
+            if (waterCellArray[i, j].volume >= minVolume)
             {
                 //Choose a random order to check the directions in, this prevents the water always going one way 
-                List<Direction> poss = new List<Direction> { Direction.xNegative, Direction.xPositive, Direction.zNegative, Direction.zPositive };
-                while (poss.Count >= 1)
-                {
-                    int randIndex = Random.Range(0, poss.Count);
-                    Direction randDir = poss[randIndex];
-                    poss.RemoveAt(randIndex);
+                //List<Direction> poss = new List<Direction> { Direction.xNegative, Direction.xPositive, Direction.zNegative, Direction.zPositive };
+                //while (poss.Count >= 1)
+                //{
+                //    int randIndex = Random.Range(0, poss.Count);
+                //    Direction randDir = poss[randIndex];
+                //    poss.RemoveAt(randIndex);
 
-                    CheckNeighbourVolume(i, j, randDir);
+                //    CheckNeighbourVolume(i, j, randDir);
+                //}
+
+                for(int k = 0; k < 4; k++)
+                {
+                    Direction direction;
+                    switch(k)
+                    {
+                        case 0:
+                            direction = Direction.xPositive;
+                            break;
+
+                        case 1:
+                            direction = Direction.xNegative;
+                            break;
+
+                        case 2:
+                            direction = Direction.zPositive;
+                            break;
+
+                        case 3:
+                            direction = Direction.zNegative;
+                            break;
+
+                        default:
+                            direction = Direction.xPositive;
+                            Debug.Log("Default case in switch statement, this shouldn't happen");
+                            break;
+                    }
+                    CheckNeighbourVolume(i, j, direction);
                 }
 
                 //Move water block
-                float heightPos = Mathf.Clamp(waterCellArray[i, j].volume / 5, 0.01f, 1f);
+                float heightMod = waterCellArray[i, j].volume / 2; //Mathf.Clamp(waterCellArray[i, j].volume / 5, 0.01f, 1f);
                 //Add the height of the terrain
-                heightPos += 1;
+                heightMod += 1 - 0.8f;
                 if (waterCellArray[i, j].volume >= minVolume)
                 {
                     //Create new water object if one doesnt exist at new positions
@@ -171,7 +220,8 @@ public class WaterController : MonoBehaviour
                     //Else adjust object
                     else
                     {
-                        waterCellArray[i, j].transformGameObject(new Vector3(i, heightPos, j));
+                        int numFullCells = (int) (waterCellArray[i, j].volume / maxVolume);
+                        waterCellArray[i, j].transformGameObject(new Vector3(i, heightMod + numFullCells, j));
                     }
                 }
             }
@@ -182,25 +232,24 @@ public class WaterController : MonoBehaviour
     void CheckNeighbourVolume(int i, int j, Direction direction)
     {
         //If block is not empty it cant move there, exit out of function
-        //As border of array is all marked as not free, this should stop any comparisions out of the array bounds
+        //As the border of the array are all marked as not free, this should stop any comparisions out of the array bounds
         if (!isBlockEmptyArray[i, j] || !waterCellArray[i, j].isInRange(direction))
             return;
 
-        float volume = waterCellArray[i, j].volume;
-        float neighbourVolume = waterCellArray[i, j].getNeighbourData(direction).volume;
-
-        //Set the previous volume to current volume
-        waterCellArray[i, j].previousVolume = volume;
-
-        //If neigbour volume is less then this volume
-        float flowAmount = (volume - neighbourVolume) * baseFlowRate;
-        //If flow amount is really small, ignore it
-        if (flowAmount <= minVolume)
-            return;
-
-        //Stop doing this twice by ensuring this id appears before neighbour id, if not then calculations between these two cells have already been applied
-        if (waterCellArray[i, j].id < waterCellArray[i, j].getNeighbourData(direction).id)
+        //If this cell has NOT been compared with the other cell this update
+        if (!waterCellArray[i, j].hasComparedWith(getVec2FromDirection(direction)))
         {
+            float volume = waterCellArray[i, j].volume;
+            float neighbourVolume = waterCellArray[i, j].getNeighbourData(direction).volume;
+            int otherX = (int)getVec2FromDirection(direction).x;
+            int otherZ = (int)getVec2FromDirection(direction).y;
+
+            //If neigbour volume is less then this volume
+            float flowAmount = (volume - neighbourVolume) * baseFlowRate;
+            //If flow amount is really small (less than min volume), ignore it
+            if (Mathf.Abs(flowAmount) <= minVolume)
+                return;
+
             //If object has not yet been instantiated, add it to the index list so it will be
             if (waterCellArray[i, j].getNeighbourData(direction).previousVolume == -1)
                 //Adds object to buffer
@@ -209,16 +258,12 @@ public class WaterController : MonoBehaviour
             //Update volume information
             waterCellArray[i, j].setNeighbourData(direction, WaterDataType.volume, neighbourVolume + flowAmount, Vector3.zero);
             waterCellArray[i, j].volume -= flowAmount;
-        }
 
-        //If min volume is greater than difference between volume this update and last, volume has not changed
-        if(minVolume >= (waterCellArray[i, j].volume - waterCellArray[i, j].previousVolume))
-        {
-            waterCellArray[i, j].hasVolumeChanged = false;
-        }
-        else
-        {
-            waterCellArray[i, j].hasVolumeChanged = true;
+            //This cell has been compared with other cell
+            waterCellArray[i, j].setComparedWith(getVec2FromDirection(direction));
+            //Other cell has been compared with this cell
+            if (!waterCellArray[i, j].isInRange(direction))
+                waterCellArray[otherX, otherZ].setComparedWith(i, j);
         }
     }
 
@@ -241,12 +286,28 @@ public class WaterController : MonoBehaviour
 
     bool CheckIfShouldRest(int thisX, int thisZ)
     {
+        NeighbourWaterCells neighbourCells = waterCellArray[thisX, thisZ].getNeighbourData();
+
+        //If any neighbour doesn't exist return false
+        if (neighbourCells.xPositive == null ||
+            neighbourCells.xNegative == null ||
+            neighbourCells.xPositive == null ||
+            neighbourCells.zNegative == null)
+            return false;
+
+        //If neighbours have volume of -1, they have not yet been created
+        if (neighbourCells.xPositive.volume == -1 ||
+            neighbourCells.xNegative.volume == -1 ||
+            neighbourCells.xPositive.volume == -1 ||
+            neighbourCells.zNegative.volume == -1)
+            return false;
+
         //Sets the water as true if all neighbours have not changed since last update
-        if (!waterCellArray[thisX, thisZ].getNeighbourData().xPositive.hasVolumeChanged &&
-            !waterCellArray[thisX, thisZ].getNeighbourData().xNegative.hasVolumeChanged &&
-            !waterCellArray[thisX, thisZ].getNeighbourData().xPositive.hasVolumeChanged &&
-            !waterCellArray[thisX, thisZ].getNeighbourData().zNegative.hasVolumeChanged)
-            return true;   
+        if (!neighbourCells.xPositive.hasVolumeChanged &&
+            !neighbourCells.xNegative.hasVolumeChanged &&
+            !neighbourCells.xPositive.hasVolumeChanged &&
+            !neighbourCells.zNegative.hasVolumeChanged)
+            return true;
 
         return false;
     }

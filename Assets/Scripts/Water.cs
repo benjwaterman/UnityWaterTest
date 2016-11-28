@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum Direction { xPositive, xNegative, zPositive, zNegative };
 public enum WaterDataType { velocity, volume };
@@ -16,7 +17,10 @@ public class WaterCell
     public bool isResting;
     public Vector3 position;
     public Vector3 velocity;
-    public NeighbourWaterCell neighbour;
+    public NeighbourWaterCells neighbours;
+
+    //Store list of what has been compared, to stop comparing the same 2 cells twice
+    List<Vector2> comparisonsList = new List<Vector2>();
 
     public WaterCell()
     {
@@ -27,7 +31,7 @@ public class WaterCell
         velocity = Vector3.zero;
         position = Vector3.zero;
 
-        //Must manually populate neighbour references if using this method
+        //Must manually populate neighbours references if using this method
     }
 
     public WaterCell(float volume, Vector3 velocity, Vector3 position, int id)
@@ -47,16 +51,16 @@ public class WaterCell
     {
         //Check if array index is in range, if it is assign reference
         if (isInRange(Direction.xPositive))
-            neighbour.xPositive = WaterController.Current.waterCellArray[(int)position.x + 1, (int)position.z];
+            neighbours.xPositive = WaterController.Current.waterCellArray[(int)position.x + 1, (int)position.z];
 
         if (isInRange(Direction.xNegative))
-            neighbour.xNegative= WaterController.Current.waterCellArray[(int)position.x - 1, (int)position.z];
+            neighbours.xNegative= WaterController.Current.waterCellArray[(int)position.x - 1, (int)position.z];
 
         if (isInRange(Direction.zPositive))
-            neighbour.zPositive = WaterController.Current.waterCellArray[(int)position.x, (int)position.z + 1];
+            neighbours.zPositive = WaterController.Current.waterCellArray[(int)position.x, (int)position.z + 1];
 
         if (isInRange(Direction.zNegative))
-            neighbour.zNegative = WaterController.Current.waterCellArray[(int)position.x, (int)position.z - 1];
+            neighbours.zNegative = WaterController.Current.waterCellArray[(int)position.x, (int)position.z - 1];
     }
 
     public void setGameObject(GameObject go)
@@ -80,25 +84,25 @@ public class WaterCell
         switch (direction)
         {
             case Direction.xPositive:
-                if (neighbour.xPositive == null)
+                if (neighbours.xPositive == null)
                 {
                     int i = 0;
                 }
-                return neighbour.xPositive;
+                return neighbours.xPositive;
             case Direction.xNegative:
-                return neighbour.xNegative;
+                return neighbours.xNegative;
             case Direction.zPositive:
-                return neighbour.zPositive;
+                return neighbours.zPositive;
             case Direction.zNegative:
-                return neighbour.zNegative;
+                return neighbours.zNegative;
             default:
                 return null;
         }
     }
 
-    public NeighbourWaterCell getNeighbourData()
+    public NeighbourWaterCells getNeighbourData()
     {
-        return neighbour;
+        return neighbours;
     }
 
     public void setNeighbourData(Direction direction, WaterDataType dataType, float vol, Vector3 vel)
@@ -113,16 +117,16 @@ public class WaterCell
             switch (direction)
             {
                 case Direction.xPositive:
-                    neighbour.xPositive.velocity = vel;
+                    neighbours.xPositive.velocity = vel;
                     break;
                 case Direction.xNegative:
-                    neighbour.xNegative.velocity = vel;
+                    neighbours.xNegative.velocity = vel;
                     break;
                 case Direction.zPositive:
-                    neighbour.zPositive.velocity = vel;
+                    neighbours.zPositive.velocity = vel;
                     break;
                 case Direction.zNegative:
-                    neighbour.zNegative.velocity = vel;
+                    neighbours.zNegative.velocity = vel;
                     break;
                 default:
                     break;
@@ -134,16 +138,16 @@ public class WaterCell
             switch (direction)
             {
                 case Direction.xPositive:
-                    neighbour.xPositive.volume = vol;
+                    neighbours.xPositive.volume = vol;
                     break;
                 case Direction.xNegative:
-                    neighbour.xNegative.volume = vol;
+                    neighbours.xNegative.volume = vol;
                     break;
                 case Direction.zPositive:
-                    neighbour.zPositive.volume = vol;
+                    neighbours.zPositive.volume = vol;
                     break;
                 case Direction.zNegative:
-                    neighbour.zNegative.volume = vol;
+                    neighbours.zNegative.volume = vol;
                     break;
                 default:
                     break;
@@ -181,9 +185,45 @@ public class WaterCell
                 return false;
         }
     }
+
+    //Set this block has been compared with x, z
+    public void setComparedWith(int x, int z)
+    {
+        comparisonsList.Add(new Vector2(x, z));
+    }
+    public void setComparedWith(Vector2 cellPosition)
+    {
+        comparisonsList.Add(cellPosition);
+    }
+
+    //Check if this block has been compared with x, z
+    public bool hasComparedWith(int x, int z)
+    {
+        if(comparisonsList.Contains(new Vector2((int) x, (int) z)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+    public bool hasComparedWith(Vector2 cellPosition)
+    {
+        if (comparisonsList.Contains(cellPosition))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    //Clear what has been compared, should happen start of each update
+    public void clearComparisons()
+    {
+        comparisonsList.Clear();
+    }
 }
 
-public struct NeighbourWaterCell
+public struct NeighbourWaterCells
 {
     public WaterCell xPositive;
     public WaterCell xNegative;
