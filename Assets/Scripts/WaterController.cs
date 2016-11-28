@@ -37,12 +37,13 @@ public class WaterController : MonoBehaviour
     //GameObject[,] particleObjectArray = new GameObject[gridSizeX, gridSizeY];
     //Store whether space is empty or not
     bool[,] isBlockEmptyArray = new bool[gridSizeX, gridSizeY];
+    int[,] worldHeightArray = new int[gridSizeX, gridSizeY];
     //Store references to water in other arrays
     List<Vector2> objectIndexList = new List<Vector2>();
     //Buffer so objectIndexList isn't edited while looping through it
     List<Vector2> objectIndexListBuffer = new List<Vector2>();
 
-    float maxVolume = 2;
+    float maxVolume = 1;
     float minVolume = 0.005f;
     float baseFlowRate = 0.1f;
     float timePassed = 0;
@@ -70,10 +71,18 @@ public class WaterController : MonoBehaviour
         }
 
         //Build block empty array before anything else
-        BuildBlockEmptyArray();
+        //BuildBlockEmptyArray();
+        BuildWorldHeightArray();
+
+        string toWrite = "";
+        foreach (var item in worldHeightArray)
+        {
+            toWrite += " " + item.ToString();
+        }
+        //Debug.Log(toWrite);
 
         //Create starting block
-        CreateParticle(new Vector2(10, 10), 35000);
+        CreateParticle(new Vector2(25, 25), 100000);
         //CreateParticle(new Vector2(20, 20), 10000);
     }
 
@@ -117,6 +126,33 @@ public class WaterController : MonoBehaviour
                 //Border of array should be classed as solid
                 if (i == 0 || i == isBlockEmptyArray.GetLength(0) || j == 0 || j == isBlockEmptyArray.GetLength(1))
                     isBlockEmptyArray[i, j] = false;
+            }
+        }
+    }
+
+    void BuildWorldHeightArray()
+    {
+        for (int i = 0; i < worldHeightArray.GetLength(0); i++)
+        {
+            for (int j = 0; j < worldHeightArray.GetLength(0); j++)
+            {
+                //Initialise all to being empty
+                worldHeightArray[i, j] = 0;
+                //Store height we're currently checking
+                int height = 0;
+                //Check if area has any colliders in
+                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f);
+                //While there is something in this spot, keep searching upwards until there is a space
+                while (hitColliders.Length > 0)
+                {
+                    height++;
+                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f);   
+                }
+                //Store the height we got to 
+                worldHeightArray[i, j] = height;
+                //Border of array should be classed as solid, make it the highest possible value
+                if (i == 0 || i == worldHeightArray.GetLength(0) || j == 0 || j == worldHeightArray.GetLength(1))
+                    worldHeightArray[i, j] = int.MaxValue;
             }
         }
     }
@@ -204,9 +240,9 @@ public class WaterController : MonoBehaviour
                 }
 
                 //Move water block
-                float heightMod = waterCellArray[i, j].volume / 2; //Mathf.Clamp(waterCellArray[i, j].volume / 5, 0.01f, 1f);
-                //Add the height of the terrain
-                heightMod += 1 - 0.8f;
+                float heightMod = waterCellArray[i, j].volume / maxVolume; //Mathf.Clamp(waterCellArray[i, j].volume / 5, 0.01f, 1f);
+                //Instead of the whole cell sitting on top of the terrain, only a small part of it will
+                heightMod -= 0.8f;
                 if (waterCellArray[i, j].volume >= minVolume)
                 {
                     //Create new water object if one doesnt exist at new positions
@@ -221,7 +257,7 @@ public class WaterController : MonoBehaviour
                     else
                     {
                         int numFullCells = (int) (waterCellArray[i, j].volume / maxVolume);
-                        waterCellArray[i, j].transformGameObject(new Vector3(i, heightMod + numFullCells, j));
+                        waterCellArray[i, j].transformGameObject(new Vector3(i, heightMod, j));
                     }
                 }
             }
@@ -233,7 +269,7 @@ public class WaterController : MonoBehaviour
     {
         //If block is not empty it cant move there, exit out of function
         //As the border of the array are all marked as not free, this should stop any comparisions out of the array bounds
-        if (!isBlockEmptyArray[i, j] || !waterCellArray[i, j].isInRange(direction))
+        if (!waterCellArray[i, j].isInRange(direction))
             return;
 
         //If this cell has NOT been compared with the other cell this update
@@ -241,8 +277,15 @@ public class WaterController : MonoBehaviour
         {
             float volume = waterCellArray[i, j].volume;
             float neighbourVolume = waterCellArray[i, j].getNeighbourData(direction).volume;
-            int otherX = (int)getVec2FromDirection(direction).x;
-            int otherZ = (int)getVec2FromDirection(direction).y;
+            int otherX = i + (int)getVec2FromDirection(direction).x;
+            int otherZ = j + (int)getVec2FromDirection(direction).y;
+
+            //CHECK IF NEIGHBOUR IS LOWER ELEVATION, IF IT IS ALWAYS MOVE THERE AND MAYBE MOVE A LARGER AMOUNT DEPENDING ON DELTA HEIGHT
+            //ALSO NEED TO CHANGE IT TO IF ON TOP OF HEIGHT DO NOT INCLUDE TERRAIN HEIGHT IN DENSITY
+
+            //If there is less water than is capable of reaching a certain height, exit
+            if ((int) (volume / maxVolume) < worldHeightArray[otherX, otherZ])
+                return;
 
             //If neigbour volume is less then this volume
             float flowAmount = (volume - neighbourVolume) * baseFlowRate;
