@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Codes.Linus.IntVectors;
 
 public class WaterInfo : MonoBehaviour
 {
@@ -14,7 +15,9 @@ public class WaterInfo : MonoBehaviour
 
     public bool hasVolumeChanged;
     public bool isResting;
-    public Vector2 position;
+    public bool fDone; 
+    public bool fActive; 
+    public Vector2i position;
 
     public WaterCell xPositiveNeighbour;
     public WaterCell xNegativeNeighbour;
@@ -25,7 +28,7 @@ public class WaterInfo : MonoBehaviour
 
     void Start()
     {
-        thisCell = WaterController.Current.waterCellArray[(int)position.x, (int)position.y];
+        thisCell = WaterController.Current.waterCellArray[position.x, position.y];
         xPositiveNeighbour = thisCell.getNeighbourData(Direction.xPositive);
         xNegativeNeighbour = thisCell.getNeighbourData(Direction.xNegative);
         zPositiveNeighbour = thisCell.getNeighbourData(Direction.zPositive);

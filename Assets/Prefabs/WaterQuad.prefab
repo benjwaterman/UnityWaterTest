@@ -21,6 +21,7 @@ GameObject:
   - 4: {fileID: 4000010653277470}
   - 33: {fileID: 33000013490894784}
   - 23: {fileID: 23000011914927172}
+  - 114: {fileID: 114000010977767430}
   m_Layer: 0
   m_Name: WaterQuad
   m_TagString: Untagged
@@ -77,3 +78,28 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000011378445224}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &114000010977767430
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000011378445224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1787c8aac8073df4682472ec3b8b14da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 0
+  volume: 0
+  previousVolume: 0
+  xPositiveVolume: 0
+  xNegativeVolume: 0
+  zPositiveVolume: 0
+  zNegativeVolume: 0
+  hasVolumeChanged: 0
+  isResting: 0
+  fDone: 0
+  fActive: 0
+  position:
+    x: 0
+    y: 0

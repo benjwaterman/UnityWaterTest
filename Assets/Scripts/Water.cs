@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Codes.Linus.IntVectors;
 
 public enum Direction { xPositive, xNegative, zPositive, zNegative };
-public enum WaterDataType { velocity, volume };
 
 public class WaterCell
 {
@@ -15,12 +15,14 @@ public class WaterCell
     public float previousVolume;
     public bool hasVolumeChanged;
     public bool isResting;
-    public Vector3 position;
-    public Vector3 velocity;
+    public bool fDone; //Done flag
+    public bool fActive; //Active flag
+    public Vector2i position;
+    public float cellHeight;
     public NeighbourWaterCells neighbours;
 
     //Store list of what has been compared, to stop comparing the same 2 cells twice
-    List<Vector2> comparisonsList = new List<Vector2>();
+    List<Vector2i> comparisonsList = new List<Vector2i>();
 
     public WaterCell()
     {
@@ -28,16 +30,17 @@ public class WaterCell
         previousVolume = -1;
         hasVolumeChanged = true;
         isResting = false;
-        velocity = Vector3.zero;
-        position = Vector3.zero;
+        position = Vector2i.zero;
+        fDone = false;
+        fActive = false;
+        cellHeight = -1;
 
         //Must manually populate neighbours references if using this method
     }
 
-    public WaterCell(float volume, Vector3 velocity, Vector3 position, int id)
+    public WaterCell(float volume, Vector2i position, int id)
     {
         this.volume = volume;
-        this.velocity = velocity;
         this.position = position;
         this.id = id;
 
@@ -45,27 +48,31 @@ public class WaterCell
         previousVolume = -1;
         hasVolumeChanged = true;
         isResting = false;
+        fDone = false;
+        fActive = false;
     }
 
     public void populateNeighbourReferences()
     {
         //Check if array index is in range, if it is assign reference
         if (isInRange(Direction.xPositive))
-            neighbours.xPositive = WaterController.Current.waterCellArray[(int)position.x + 1, (int)position.z];
+            neighbours.xPositive = WaterController.Current.waterCellArray[position.x + 1, position.y];
 
         if (isInRange(Direction.xNegative))
-            neighbours.xNegative= WaterController.Current.waterCellArray[(int)position.x - 1, (int)position.z];
+            neighbours.xNegative= WaterController.Current.waterCellArray[position.x - 1, position.y];
 
         if (isInRange(Direction.zPositive))
-            neighbours.zPositive = WaterController.Current.waterCellArray[(int)position.x, (int)position.z + 1];
+            neighbours.zPositive = WaterController.Current.waterCellArray[position.x, position.y + 1];
 
         if (isInRange(Direction.zNegative))
-            neighbours.zNegative = WaterController.Current.waterCellArray[(int)position.x, (int)position.z - 1];
+            neighbours.zNegative = WaterController.Current.waterCellArray[position.x, position.y - 1];
     }
 
     public void setGameObject(GameObject go)
     {
         waterGameObject = go;
+        //Adjust the game object height to whatever it is currently set to (should be -1) when this function is called
+        waterGameObject.transform.position = new Vector3(waterGameObject.transform.position.x, cellHeight, waterGameObject.transform.position.z);
     }
 
     public GameObject getGameObject()
@@ -73,10 +80,17 @@ public class WaterCell
         return waterGameObject;
     }
 
-    public void transformGameObject(Vector3 position)
+    public void transformGameObject(Vector2i position)
     {
-        waterGameObject.transform.position = position;
+        waterGameObject.transform.position = new Vector3(position.x, cellHeight, position.y);
         this.position = position;
+    }
+
+    public void setCellHeight(float newHeight)
+    {
+        cellHeight = newHeight;
+        //Adjust height of cell
+        waterGameObject.transform.position = new Vector3(waterGameObject.transform.position.x, cellHeight, waterGameObject.transform.position.z);
     }
 
     public WaterCell getNeighbourData(Direction direction)
@@ -84,17 +98,17 @@ public class WaterCell
         switch (direction)
         {
             case Direction.xPositive:
-                if (neighbours.xPositive == null)
-                {
-                    int i = 0;
-                }
                 return neighbours.xPositive;
+
             case Direction.xNegative:
                 return neighbours.xNegative;
+
             case Direction.zPositive:
                 return neighbours.zPositive;
+
             case Direction.zNegative:
                 return neighbours.zNegative;
+
             default:
                 return null;
         }
@@ -103,56 +117,6 @@ public class WaterCell
     public NeighbourWaterCells getNeighbourData()
     {
         return neighbours;
-    }
-
-    public void setNeighbourData(Direction direction, WaterDataType dataType, float vol, Vector3 vel)
-    {
-        if (dataType == WaterDataType.velocity)
-        {
-            if (vel == null)
-            {
-                Debug.Log("Velocity cannot be null");
-                return;
-            }
-            switch (direction)
-            {
-                case Direction.xPositive:
-                    neighbours.xPositive.velocity = vel;
-                    break;
-                case Direction.xNegative:
-                    neighbours.xNegative.velocity = vel;
-                    break;
-                case Direction.zPositive:
-                    neighbours.zPositive.velocity = vel;
-                    break;
-                case Direction.zNegative:
-                    neighbours.zNegative.velocity = vel;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        else if (dataType == WaterDataType.volume)
-        {
-            switch (direction)
-            {
-                case Direction.xPositive:
-                    neighbours.xPositive.volume = vol;
-                    break;
-                case Direction.xNegative:
-                    neighbours.xNegative.volume = vol;
-                    break;
-                case Direction.zPositive:
-                    neighbours.zPositive.volume = vol;
-                    break;
-                case Direction.zNegative:
-                    neighbours.zNegative.volume = vol;
-                    break;
-                default:
-                    break;
-            }
-        }
     }
 
     public bool isInRange(Direction dir)
@@ -172,12 +136,12 @@ public class WaterCell
                 return false;
 
             case Direction.zPositive:
-                if (position.z + 1 < zLength)
+                if (position.y + 1 < zLength)
                     return true;
                 return false;
 
             case Direction.zNegative:
-                if (position.z - 1 >= 0)
+                if (position.y - 1 >= 0)
                     return true;
                 return false;
 
@@ -189,9 +153,9 @@ public class WaterCell
     //Set this block has been compared with x, z
     public void setComparedWith(int x, int z)
     {
-        comparisonsList.Add(new Vector2(x, z));
+        comparisonsList.Add(new Vector2i(x, z));
     }
-    public void setComparedWith(Vector2 cellPosition)
+    public void setComparedWith(Vector2i cellPosition)
     {
         comparisonsList.Add(cellPosition);
     }
@@ -199,14 +163,14 @@ public class WaterCell
     //Check if this block has been compared with x, z
     public bool hasComparedWith(int x, int z)
     {
-        if(comparisonsList.Contains(new Vector2((int) x, (int) z)))
+        if(comparisonsList.Contains(new Vector2i(x, z)))
         {
             return true;
         }
 
         return false;
     }
-    public bool hasComparedWith(Vector2 cellPosition)
+    public bool hasComparedWith(Vector2i cellPosition)
     {
         if (comparisonsList.Contains(cellPosition))
         {
