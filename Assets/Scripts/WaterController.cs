@@ -82,7 +82,7 @@ public class WaterController : MonoBehaviour
         //Debug.Log(toWrite);
 
         //Create starting block
-        CreateParticle(new Vector2(25, 25), 100000);
+        CreateParticle(new Vector2(25, 25), 100000); //do for all cells, to save future costs, and checking
         //CreateParticle(new Vector2(20, 20), 10000);
     }
 
@@ -163,16 +163,72 @@ public class WaterController : MonoBehaviour
         objectIndexList.AddRange(objectIndexListBuffer);
         //Clear buffer
         objectIndexListBuffer.Clear();
+        
+        
+        /*
+        
+        A is a reference to a list of vec2i or refs to objects
+        B is a reference to a list  //rather than a list could statically sized array of vec2i, and stop spinning when you find one with negative values., and set the first value niegatie to "clear)
+        // trying to minimize (eliminate allocations) - set PoD values on objects rather than create objects
+        
+        clear B
+        for each active (A)//calcFlow
+        {
+            for each neighbour:
+            {
+                if they are not done:
+                {
+                    calc flow with N according to previousVolume
+                    if flow > threshold
+                    {
+                        adjust their volume according to flowVolume
+                        adjust our volume according to flowVolume
+
+                        // if they are not active, then:
+                        {
+                            add them activeList (B) 
+                            set activeFlag on them
+                        }
+
+                         // if we are not active, then:
+                        {
+                            add us to activeList (B) 
+                            set activeFlag on us
+                        }
+                    }
+                }
+            }
+            set our DONE flag
+            previousVolume = volume (safe because WE are done)
+        }        
+        
+        
+        for each active (B)
+        {
+            //reset all done flags for B
+            //reset all active flags for B
+            
+            //set renderable thing to the right height...
+            
+        }
+        flip activeLists (A becomes B, and B comes A) (probably need a C temporary
+        
+        
+        //for debug you might want to check for repetitions (before the stop mark) in A or in B.
+        */
+        
+        
+        
         //Loop through stored object positions, saves us checking empty cells
-        foreach (Vector2 position in objectIndexList)
+        foreach (Vector2 position in objectIndexList) // use vector2i - https://github.com/LinusVanElswijk/Unity-Int-Vectors
         {
             int i = (int)position.x;
             int j = (int)position.y;
 
             //If volume difference is less than minVolume, water has not changed
-            if (minVolume >= Mathf.Abs(waterCellArray[i, j].volume - waterCellArray[i, j].previousVolume))
+            if (minVolume >= Mathf.Abs(waterCellArray[i, j].volume - waterCellArray[i, j].previousVolume)) //split into a variable (flowVolume) and the comparison
             {
-                waterCellArray[i, j].hasVolumeChanged = false;
+                waterCellArray[i, j].hasVolumeChanged = false; //remove, just use an "active list"
             }
             else
             {
@@ -265,6 +321,7 @@ public class WaterController : MonoBehaviour
     }
 
     //Check neighbours
+    // INLINE ME - https://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.methodimploptions(v=VS.110).aspx
     void CheckNeighbourVolume(int i, int j, Direction direction)
     {
         //If block is not empty it cant move there, exit out of function
@@ -284,11 +341,11 @@ public class WaterController : MonoBehaviour
             //ALSO NEED TO CHANGE IT TO IF ON TOP OF HEIGHT DO NOT INCLUDE TERRAIN HEIGHT IN DENSITY
 
             //If there is less water than is capable of reaching a certain height, exit
-            if ((int) (volume / maxVolume) < worldHeightArray[otherX, otherZ])
+            if ((int) (volume / maxVolume) < worldHeightArray[otherX, otherZ])  //don't worry about max volume
                 return;
 
             //If neigbour volume is less then this volume
-            float flowAmount = (volume - neighbourVolume) * baseFlowRate;
+            float flowAmount = (volume - neighbourVolume) * baseFlowRate; //??could move to a non-linear relationship?? 
             //If flow amount is really small (less than min volume), ignore it
             if (Mathf.Abs(flowAmount) <= minVolume)
                 return;
