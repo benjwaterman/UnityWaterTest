@@ -15,8 +15,8 @@ public class WaterController : MonoBehaviour
     }
 
     public GameObject waterObject;
-    public static int gridSizeX = 50;
-    public static int gridSizeY = 50;
+    public static int gridSizeX = 100;
+    public static int gridSizeY = 100;
     public static int gridSizeZ = 100;
 
     public WaterCell[,] waterCellArray = new WaterCell[gridSizeX, gridSizeY];
@@ -33,10 +33,12 @@ public class WaterController : MonoBehaviour
     List<Vector2i> activeCellIndexListA = new List<Vector2i>();
     //Have 2 as 1 acts as a buffer
     List<Vector2i> activeCellIndexListB = new List<Vector2i>();
+    //Used to store the temporary list
+    List<Vector2i> tempList = new List<Vector2i>();
 
     float maxVolume = 1;
-    float minVolume = 0.005f;
-    float baseFlowRate = 0.1f;
+    float minVolume = 0.05f;
+    float baseFlowRate = 0.15f;
     float timePassed = 0;
     float waterCounter = 1;
 
@@ -58,7 +60,7 @@ public class WaterController : MonoBehaviour
         Debug.Log(toWrite); */
 
         //Create starting cell
-        waterCellArray[1, 1].volume = 100;
+        waterCellArray[50, 50].volume = 5000;
     }
 
     void Update()
@@ -150,7 +152,8 @@ public class WaterController : MonoBehaviour
             foreach (Direction dir in neighboursToCompare)
             {
                 //If neighbour exists
-                if (waterCellArray[index.x, index.y].isInRange(dir))
+                //if (waterCellArray[index.x, index.y]. isInRange(dir))
+                if(index.x < waterCellArray.GetLength(0) - 1 && index.y < waterCellArray.GetLength(1) - 1 && index.x > 0 && index.y > 0)
                 {
                     //If neighbour is not done
                     if (!waterCellArray[index.x, index.y].getNeighbourData(dir).fDone)
@@ -158,10 +161,12 @@ public class WaterController : MonoBehaviour
                         //If difference between volumes is greater than min amount
                         if (Mathf.Abs(waterCellArray[index.x, index.y].volume - waterCellArray[index.x, index.y].getNeighbourData(dir).volume) > minVolume)
                         {
+                            //Set previous volume to current volume
+                            waterCellArray[index.x, index.y].previousVolume = waterCellArray[index.x, index.y].volume;
                             //Adjust this volume
                             waterCellArray[index.x, index.y].volume -= (waterCellArray[index.x, index.y].volume - waterCellArray[index.x, index.y].getNeighbourData(dir).volume) * baseFlowRate;
-                            //Adjust neighbour volume
-                            waterCellArray[index.x, index.y].getNeighbourData(dir).volume += (waterCellArray[index.x, index.y].volume - waterCellArray[index.x, index.y].getNeighbourData(dir).volume) * baseFlowRate;
+                            //Adjust neighbour volume using previous volume
+                            waterCellArray[index.x, index.y].getNeighbourData(dir).volume += (waterCellArray[index.x, index.y].previousVolume - waterCellArray[index.x, index.y].getNeighbourData(dir).volume) * baseFlowRate;
 
                             //If neighbour is not active
                             if (!waterCellArray[index.x, index.y].getNeighbourData(dir).fActive)
@@ -191,19 +196,21 @@ public class WaterController : MonoBehaviour
             waterCellArray[index.x, index.y].fActive = false;
             waterCellArray[index.x, index.y].fDone = false;
 
+            //NEED TO MAKE THIS MORE EFFICIENT, USE DEEP PROFILING FOR MORE
             waterCellArray[index.x, index.y].setCellHeight(waterCellArray[index.x, index.y].volume);
         }
 
         //Flip lists, it is done like this to prevent copying references and do a deep copy instead
-        List<Vector2i> tempList = new List<Vector2i>();
         //A assigned to temp list
         tempList.AddRange(activeCellIndexListA);
         //B assigned to A
         activeCellIndexListA.Clear();
         activeCellIndexListA.AddRange(activeCellIndexListB);
-        //Clear list B
+        //A (tempList) assigned to B
         activeCellIndexListB.Clear();
-        //activeCellIndexListB.AddRange(tempList);
+        activeCellIndexListB.AddRange(tempList);
+        //Clear temp list
+        tempList.Clear();
     }
 
     void UpdateSim()
@@ -267,7 +274,7 @@ public class WaterController : MonoBehaviour
         */
 
 
-
+        /*
         //Loop through stored object positions, saves us checking empty cells
         foreach (Vector2 position in objectIndexList) // use vector2i - https://github.com/LinusVanElswijk/Unity-Int-Vectors
         {
@@ -355,7 +362,7 @@ public class WaterController : MonoBehaviour
                     }
                 }
             }
-        }
+        } */
     }
 
     //Check neighbours
@@ -363,6 +370,7 @@ public class WaterController : MonoBehaviour
     //Cant inline, dont think unity has correct .NET version
     void CheckNeighbourVolume(int i, int j, Direction direction)
     {
+        /*
         //If block is not empty it cant move there, exit out of function
         //As the border of the array are all marked as not free, this should stop any comparisions out of the array bounds
         if (!waterCellArray[i, j].isInRange(direction))
@@ -403,7 +411,7 @@ public class WaterController : MonoBehaviour
             //Other cell has been compared with this cell
             if (!waterCellArray[i, j].isInRange(direction))
                 waterCellArray[otherX, otherZ].setComparedWith(i, j);
-        }
+        } */
     }
 
     Vector2i getVec2FromDirection(Direction dir)
@@ -423,6 +431,7 @@ public class WaterController : MonoBehaviour
         }
     }
 
+    /*
     bool CheckIfShouldRest(int thisX, int thisZ)
     {
         NeighbourWaterCells neighbourCells = waterCellArray[thisX, thisZ].getNeighbourData();
@@ -449,5 +458,5 @@ public class WaterController : MonoBehaviour
             return true;
 
         return false;
-    }
+    }*/
 }

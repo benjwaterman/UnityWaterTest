@@ -117,7 +117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b6568cfea2e1e644b090e9bce8a6847, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waterObject: {fileID: 1000011910327282, guid: 17d4a8f58a2563845b21ebf0c8970cb3,
+  waterObject: {fileID: 1000011172963192, guid: a917ca4644b9c4e469101c728f1257e4,
     type: 2}
 --- !u!4 &489119621
 Transform:
@@ -356,7 +356,7 @@ Transform:
   m_GameObject: {fileID: 2108841077}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 50, y: 0, z: 50}
-  m_LocalScale: {x: 100, y: 1, z: 100}
+  m_LocalScale: {x: 100, y: 1.1, z: 100}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children: []
   m_Father: {fileID: 0}

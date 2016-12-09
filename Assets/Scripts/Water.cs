@@ -13,23 +13,16 @@ public class WaterCell
     public int id;
     public float volume;
     public float previousVolume;
-    public bool hasVolumeChanged;
-    public bool isResting;
     public bool fDone; //Done flag
     public bool fActive; //Active flag
     public Vector2i position;
     public float cellHeight;
     public NeighbourWaterCells neighbours;
 
-    //Store list of what has been compared, to stop comparing the same 2 cells twice
-    List<Vector2i> comparisonsList = new List<Vector2i>();
-
     public WaterCell()
     {
         volume = 0;
         previousVolume = -1;
-        hasVolumeChanged = true;
-        isResting = false;
         position = Vector2i.zero;
         fDone = false;
         fActive = false;
@@ -46,8 +39,6 @@ public class WaterCell
 
         //Default values
         previousVolume = -1;
-        hasVolumeChanged = true;
-        isResting = false;
         fDone = false;
         fActive = false;
     }
@@ -146,44 +137,9 @@ public class WaterCell
                 return false;
 
             default:
+                Debug.Log("Default case in: isInRange(). This shouldn't happen.");
                 return false;
         }
-    }
-
-    //Set this block has been compared with x, z
-    public void setComparedWith(int x, int z)
-    {
-        comparisonsList.Add(new Vector2i(x, z));
-    }
-    public void setComparedWith(Vector2i cellPosition)
-    {
-        comparisonsList.Add(cellPosition);
-    }
-
-    //Check if this block has been compared with x, z
-    public bool hasComparedWith(int x, int z)
-    {
-        if(comparisonsList.Contains(new Vector2i(x, z)))
-        {
-            return true;
-        }
-
-        return false;
-    }
-    public bool hasComparedWith(Vector2i cellPosition)
-    {
-        if (comparisonsList.Contains(cellPosition))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    //Clear what has been compared, should happen start of each update
-    public void clearComparisons()
-    {
-        comparisonsList.Clear();
     }
 }
 

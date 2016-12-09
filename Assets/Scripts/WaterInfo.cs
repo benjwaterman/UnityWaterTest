@@ -40,8 +40,8 @@ public class WaterInfo : MonoBehaviour
         id = thisCell.id;
         volume = thisCell.volume;
         previousVolume = thisCell.previousVolume;
-        hasVolumeChanged = thisCell.hasVolumeChanged;
-        isResting = thisCell.isResting;
+        fDone = thisCell.fDone;
+        fActive = thisCell.fDone;
 
         if(xPositiveNeighbour != null)
             xPositiveVolume = xPositiveNeighbour.volume;
