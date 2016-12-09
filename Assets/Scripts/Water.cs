@@ -77,11 +77,11 @@ public class WaterCell
         this.position = position;
     }
 
-    public void setCellHeight(float newHeight)
+    public void setCellHeight()
     {
-        cellHeight = newHeight;
+        cellHeight = volume;
         //Adjust height of cell
-        waterGameObject.transform.position = new Vector3(waterGameObject.transform.position.x, cellHeight, waterGameObject.transform.position.z);
+        waterGameObject.transform.position = new Vector3(position.x, cellHeight, position.y);
     }
 
     public WaterCell getNeighbourData(Direction direction)
