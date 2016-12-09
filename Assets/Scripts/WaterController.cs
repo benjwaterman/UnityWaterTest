@@ -37,7 +37,7 @@ public class WaterController : MonoBehaviour
 
     float maxVolume = 1;
     float minVolume = 0.05f;
-    float baseFlowRate = 0.15f;
+    float baseFlowRate = 0.25f;
     float timePassed = 0;
     float waterCounter = 1;
 
@@ -45,6 +45,7 @@ public class WaterController : MonoBehaviour
 
     //Mesh stuff
     Vector3[] vertices = new Vector3[gridSizeX * gridSizeY];
+    Vector3[] normals;
     Vector2[] uvs = new Vector2[gridSizeX * gridSizeY];
     int[] triangles;
 
@@ -67,40 +68,40 @@ public class WaterController : MonoBehaviour
         Debug.Log(toWrite); */
 
         //Create starting cell
-        waterCellArray[50, 50].volume = 5000;
+        waterCellArray[50, 50].volume = 100000;
+        waterCellArray[50, 50].fActive = true;
 
-        SetupMesh();
+        //waterCellArray[25, 25].volume = 800;
+        //waterCellArray[45, 45].volume = 130;
+
+        UpdateMesh();
         Mesh waterMesh = new Mesh();
         gameObject.AddComponent<MeshFilter>().mesh = waterMesh;
-        //Must be in this order
-        waterMesh.vertices = vertices;
-        waterMesh.uv = uvs;
-        waterMesh.triangles = triangles;
-
-        waterMesh.RecalculateNormals();
-        //gameObject.AddComponent<MeshCollider>();
+        ApplyMesh();
     }
 
     void Update()
     {
+        //if(activeCellIndexListA.Count > 0)
         if (timePassed > 0.0)
         {
-            //UpdateSim();
             UpdateCells();
+            UpdateMesh();
+            ApplyMesh();
+
+            //foreach (Vector2i index in activeCellIndexListB)
+            //{
+            //    waterCellArray[index.x, index.y].getGameObject().transform.position = new Vector3(waterCellArray[index.x, index.y].position.x,
+            //        waterCellArray[index.x, index.y].volume,
+            //        waterCellArray[index.x, index.y].position.y);
+            //}
+
             timePassed = 0;
         }
         timePassed += Time.deltaTime;
     }
 
-    //void FixedUpdate()
-    //{
-    //    foreach (Vector2i index in activeCellIndexListB)
-    //    {
-    //        waterCellArray[index.x, index.y].setCellHeight();
-    //    }
-    //}
-
-    void SetupMesh() //http://wiki.unity3d.com/index.php/ProceduralPrimitives
+    void UpdateMesh() //http://wiki.unity3d.com/index.php/ProceduralPrimitives
     {
         int vertIndex = 0;
         for (int i = 0; i < gridSizeX; i++)
@@ -111,6 +112,25 @@ public class WaterController : MonoBehaviour
                 vertices[vertIndex++] = position;
             }
         }
+
+        vertices = new Vector3[resX * resZ];
+        for (int z = 0; z < resZ; z++)
+        {
+            // [ -length / 2, length / 2 ]
+            //float zPos = ((float)z / (resZ - 1) - .5f) * gridSizeX;
+            for (int x = 0; x < resX; x++)
+            {
+                // [ -width / 2, width / 2 ]
+                //float xPos = ((float)x / (resX - 1) - .5f) * gridSizeY;
+                float xPos = waterCellArray[x, z].position.x;
+                float zPos = waterCellArray[x, z].position.y;
+                vertices[x + z * resX] = new Vector3(xPos, waterCellArray[x, z].volume, zPos);
+            }
+        }
+
+        normals = new Vector3[vertices.Length];
+        for (int n = 0; n < normals.Length; n++)
+            normals[n] = Vector3.up;
 
         for (int v = 0; v < resZ; v++)
         {
@@ -139,6 +159,19 @@ public class WaterController : MonoBehaviour
 
     }
 
+    void ApplyMesh()
+    {
+        Mesh waterMesh = gameObject.GetComponent<MeshFilter>().mesh;
+        //Must be in this order
+        waterMesh.vertices = vertices;
+        waterMesh.normals = normals;
+        waterMesh.uv = uvs;
+        waterMesh.triangles = triangles;
+
+        waterMesh.RecalculateNormals();
+        waterMesh.Optimize();
+    }
+
     void InitialiseCellArray()
     {
         int id = 0;
@@ -150,6 +183,8 @@ public class WaterController : MonoBehaviour
                 waterCellArray[i, j] = new WaterCell(0, new Vector2i(i, j), id++);
                 //Create cell at position with -1 volume
                 CreateCell(new Vector2i(i, j), 0);
+
+                waterCellArray[i, j].fActive = false;
                 //Add to active cell index
                 activeCellIndexListA.Add(new Vector2i(i, j));
             }
@@ -175,10 +210,10 @@ public class WaterController : MonoBehaviour
         waterCellArray[x, y].volume = volume;
 
         //Create gameobject and assign it
-        waterCellArray[x, y].setGameObject((GameObject)Instantiate(waterObject, new Vector3(x, -1, y), Quaternion.identity));
+        //waterCellArray[x, y].setGameObject((GameObject)Instantiate(waterObject, new Vector3(x, -1, y), Quaternion.identity));
         //Add to buffer to keep track of water
         //objectIndexListBuffer.Add(new Vector2(x, y));
-        waterCellArray[x, y].getGameObject().GetComponent<WaterInfo>().position = new Vector2i(x, y);
+        //waterCellArray[x, y].getGameObject().GetComponent<WaterInfo>().position = new Vector2i(x, y);
     }
 
     void BuildWorldHeightArray()
@@ -213,82 +248,86 @@ public class WaterController : MonoBehaviour
         //For each cell in cell index list A
         foreach (Vector2i index in activeCellIndexListA)
         {
-            //Compare against all neighbours
-            foreach (Direction dir in neighboursToCompare)
+            //And if cell is active
+            //if (waterCellArray[index.x, index.y].fActive)
             {
-                //If neighbour exists
-                //if (waterCellArray[index.x, index.y]. isInRange(dir))
-                if(index.x < gridSizeX - 1 && index.y < gridSizeY - 1 && index.x > 0 && index.y > 0)
+                //Compare against all neighbours
+                foreach (Direction dir in neighboursToCompare)
                 {
-                    //WaterCell neighbourCell = waterCellArray[index.x, index.y].getNeighbourData(dir);
-                    //Vector2i additionVec2i = getVec2FromDirection(dir);
-                    Vector2i additionVec2i = new Vector2i(0,0);
-                    switch (dir)
+                    //If neighbour exists
+                    //if (waterCellArray[index.x, index.y]. isInRange(dir))
+                    if (index.x < gridSizeX - 1 && index.y < gridSizeY - 1 && index.x > 0 && index.y > 0)
                     {
-                        case Direction.xPositive:
-                            additionVec2i = new Vector2i(1, 0);
-                            break;
-
-                        case Direction.xNegative:
-                            additionVec2i = new Vector2i(-1, 0);
-                            break;
-
-                        case Direction.zPositive:
-                            additionVec2i = new Vector2i(0, 1);
-                            break;
-
-                        case Direction.zNegative:
-                            additionVec2i = new Vector2i(0, -1);
-                            break;
-                    }
-                    WaterCell neighbourCell = waterCellArray[index.x + additionVec2i.x, index.y + additionVec2i.y];
-                    //If neighbour is not done
-                    if (!neighbourCell.fDone)
-                    {
-                        //If difference between volumes is greater than min amount
-                        if (Mathf.Abs(waterCellArray[index.x, index.y].volume - neighbourCell.volume) > minVolume)
+                        //WaterCell neighbourCell = waterCellArray[index.x, index.y].getNeighbourData(dir);
+                        //Vector2i additionVec2i = getVec2FromDirection(dir);
+                        Vector2i additionVec2i = new Vector2i(0, 0);
+                        switch (dir)
                         {
-                            //Set previous volume to current volume
-                            waterCellArray[index.x, index.y].previousVolume = waterCellArray[index.x, index.y].volume;
-                            //Adjust this volume
-                            waterCellArray[index.x, index.y].volume -= (waterCellArray[index.x, index.y].volume - neighbourCell.volume) * baseFlowRate;
-                            //Adjust neighbour volume using previous volume
-                            neighbourCell.volume += (waterCellArray[index.x, index.y].previousVolume - neighbourCell.volume) * baseFlowRate;
+                            case Direction.xPositive:
+                                additionVec2i = new Vector2i(1, 0);
+                                break;
 
-                            //If neighbour is not active
-                            if (!neighbourCell.fActive)
-                            {
-                                neighbourCell.fActive = true;
-                                activeCellIndexListB.Add(neighbourCell.position);
-                            }
-                            //If this cell is not active
-                            if (!waterCellArray[index.x, index.y].fActive)
-                            {
-                                waterCellArray[index.x, index.y].fActive = true;
-                                activeCellIndexListB.Add(waterCellArray[index.x, index.y].position);
-                            }
+                            case Direction.xNegative:
+                                additionVec2i = new Vector2i(-1, 0);
+                                break;
+
+                            case Direction.zPositive:
+                                additionVec2i = new Vector2i(0, 1);
+                                break;
+
+                            case Direction.zNegative:
+                                additionVec2i = new Vector2i(0, -1);
+                                break;
                         }
+                        WaterCell neighbourCell = waterCellArray[index.x + additionVec2i.x, index.y + additionVec2i.y];
+                        //If neighbour is not done
+                        if (!neighbourCell.fDone)
+                        {
+                            //If difference between volumes is greater than min amount
+                            if (Mathf.Abs(waterCellArray[index.x, index.y].volume - neighbourCell.volume) > minVolume)
+                            {
+                                //Set previous volume to current volume
+                                waterCellArray[index.x, index.y].previousVolume = waterCellArray[index.x, index.y].volume;
+                                //Adjust this volume
+                                waterCellArray[index.x, index.y].volume -= (waterCellArray[index.x, index.y].volume - neighbourCell.volume) * baseFlowRate;
+                                //Adjust neighbour volume using previous volume
+                                neighbourCell.volume += (waterCellArray[index.x, index.y].previousVolume - neighbourCell.volume) * baseFlowRate;
 
+                                //If neighbour is not active
+                                if (!neighbourCell.fActive)
+                                {
+                                    neighbourCell.fActive = true;
+                                    activeCellIndexListB.Add(neighbourCell.position);
+                                }
+                                //If this cell is not active
+                                if (!waterCellArray[index.x, index.y].fActive)
+                                {
+                                    waterCellArray[index.x, index.y].fActive = true;
+                                    activeCellIndexListB.Add(waterCellArray[index.x, index.y].position);
+                                }
+                            }
+
+                        }
                     }
                 }
+                //Set this cell to done
+                waterCellArray[index.x, index.y].fDone = true;
             }
-            //Set this cell to done
-            waterCellArray[index.x, index.y].fDone = true;
         }
 
         //For cells in list B
         foreach (Vector2i index in activeCellIndexListB)
         {
             //Reset flags
-            waterCellArray[index.x, index.y].fActive = false;
+            //waterCellArray[index.x, index.y].fActive = false;
             waterCellArray[index.x, index.y].fDone = false;
 
             //NEED TO MAKE THIS MORE EFFICIENT, USE DEEP PROFILING FOR MORE
             //waterCellArray[index.x, index.y].setCellHeight();
-            /*
-            waterCellArray[index.x, index.y].getGameObject().transform.position = new Vector3(waterCellArray[index.x, index.y].position.x, 
-                waterCellArray[index.x, index.y].volume, 
-                waterCellArray[index.x, index.y].position.y); */
+            
+            //waterCellArray[index.x, index.y].getGameObject().transform.position = new Vector3(waterCellArray[index.x, index.y].position.x, 
+            //    waterCellArray[index.x, index.y].volume, 
+            //    waterCellArray[index.x, index.y].position.y); 
         }
 
         //Flip lists, it is done like this to prevent copying references and do a deep copy instead

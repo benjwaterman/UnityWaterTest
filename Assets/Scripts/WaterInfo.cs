@@ -14,7 +14,6 @@ public class WaterInfo : MonoBehaviour
     public float zNegativeVolume;
 
     public bool hasVolumeChanged;
-    public bool isResting;
     public bool fDone; 
     public bool fActive; 
     public Vector2i position;

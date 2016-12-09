@@ -37,7 +37,7 @@ Transform:
   m_GameObject: {fileID: 1000011172963192}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children: []
   m_Father: {fileID: 0}
@@ -55,7 +55,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 6d1b631f4ca1a0148b3874556d5a4320, type: 2}
+  - {fileID: 2100000, guid: 6e2e4903707d39e4481bbf92116807c6, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
@@ -97,7 +97,6 @@ MonoBehaviour:
   zPositiveVolume: 0
   zNegativeVolume: 0
   hasVolumeChanged: 0
-  isResting: 0
   fDone: 0
   fActive: 0
   position:
