@@ -4,15 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Codes.Linus.IntVectors; //Int vectors from https://github.com/LinusVanElswijk/Unity-Int-Vectors
 
-public class WaterController : MonoBehaviour
-{
+public class WaterController : MonoBehaviour {
     //Singleton reference
     public static WaterController Current;
     //For debugging water
     public static bool fDebug = false;
 
-    public WaterController()
-    {
+    public WaterController() {
         Current = this;
     }
 
@@ -45,8 +43,10 @@ public class WaterController : MonoBehaviour
     Vector2[] uvs = new Vector2[gridSizeX * gridSizeY];
     int[] triangles;
 
-    void Start()
-    {
+    //Bool to store paused state
+    public bool bIsPaused = false;
+
+    void Start() {
         //Initialise cell array
         InitialiseCellArray();
 
@@ -69,11 +69,9 @@ public class WaterController : MonoBehaviour
         ApplyMesh();
     }
 
-    void Update()
-    {
+    void Update() {
         //if(activeCellIndexListA.Count > 0)
-        if (timePassed > 0.0)
-        {
+        if (timePassed > 0.0) {
             UpdateCells();
             UpdateMesh();
             ApplyMesh();
@@ -84,29 +82,35 @@ public class WaterController : MonoBehaviour
 
             timePassed = 0;
         }
-        timePassed += Time.deltaTime;
+
+        //If not paused update time passed
+        if (!bIsPaused) {
+            timePassed += Time.deltaTime;
+        }
+    }
+
+    public void RefreshWorld() {
+        //Pause while rebuilding world height array
+        bIsPaused = true;
+        BuildWorldHeightArray();
+        bIsPaused = false;
     }
 
     //Code adapted from http://wiki.unity3d.com/index.php/ProceduralPrimitives
-    void UpdateMesh() 
-    {
+    void UpdateMesh() {
         int vertIndex = 0;
-        for (int i = 0; i < gridSizeX; i++)
-        {
-            for (int j = 0; j < gridSizeY; j++)
-            {
+        for (int i = 0; i < gridSizeX; i++) {
+            for (int j = 0; j < gridSizeY; j++) {
                 Vector3 position = new Vector3(waterCellArray[i, j].position.x, waterCellArray[i, j].volume, waterCellArray[i, j].position.y);
                 vertices[vertIndex++] = position;
             }
         }
 
         vertices = new Vector3[gridSizeX * gridSizeY];
-        for (int z = 0; z < gridSizeY; z++)
-        {
+        for (int z = 0; z < gridSizeY; z++) {
             // [ -length / 2, length / 2 ]
             //float zPos = ((float)z / (gridSizeY - 1) - .5f) * gridSizeX;
-            for (int x = 0; x < gridSizeX; x++)
-            {
+            for (int x = 0; x < gridSizeX; x++) {
                 // [ -width / 2, width / 2 ]
                 //float xPos = ((float)x / (gridSizeX - 1) - .5f) * gridSizeY;
                 float xPos = waterCellArray[x, z].position.x;
@@ -119,10 +123,8 @@ public class WaterController : MonoBehaviour
         for (int n = 0; n < normals.Length; n++)
             normals[n] = Vector3.up;
 
-        for (int v = 0; v < gridSizeY; v++)
-        {
-            for (int u = 0; u < gridSizeX; u++)
-            {
+        for (int v = 0; v < gridSizeY; v++) {
+            for (int u = 0; u < gridSizeX; u++) {
                 uvs[u + v * gridSizeX] = new Vector2((float)u / (gridSizeX - 1), (float)v / (gridSizeY - 1));
             }
         }
@@ -130,8 +132,7 @@ public class WaterController : MonoBehaviour
         int nbFaces = (gridSizeX - 1) * (gridSizeY - 1);
         triangles = new int[nbFaces * 6];
         int t = 0;
-        for (int face = 0; face < nbFaces; face++)
-        {
+        for (int face = 0; face < nbFaces; face++) {
             // Retrieve lower left corner from face ind
             int i = face % (gridSizeX - 1) + (face / (gridSizeY - 1) * gridSizeX);
 
@@ -146,8 +147,7 @@ public class WaterController : MonoBehaviour
 
     }
 
-    void ApplyMesh()
-    {
+    void ApplyMesh() {
         //Get mesh from gameobject
         Mesh waterMesh = gameObject.GetComponent<MeshFilter>().mesh;
 
@@ -161,13 +161,10 @@ public class WaterController : MonoBehaviour
         waterMesh.Optimize();
     }
 
-    void InitialiseCellArray()
-    {
+    void InitialiseCellArray() {
         int id = 0;
-        for (int i = 0; i < gridSizeX; i++)
-        {
-            for (int j = 0; j < gridSizeY; j++)
-            {
+        for (int i = 0; i < gridSizeX; i++) {
+            for (int j = 0; j < gridSizeY; j++) {
                 //Iniitialise cell array at current position
                 waterCellArray[i, j] = new WaterCell(0, new Vector2i(i, j), id++);
                 //Create cell at position with -1 volume
@@ -180,18 +177,15 @@ public class WaterController : MonoBehaviour
         }
 
         //Have to do this after all cells have been initialised otherwise neighbours wont exist
-        for (int i = 0; i < gridSizeX; i++)
-        {
-            for (int j = 0; j < gridSizeY; j++)
-            {
+        for (int i = 0; i < gridSizeX; i++) {
+            for (int j = 0; j < gridSizeY; j++) {
                 //Populate neighbours
                 waterCellArray[i, j].populateNeighbourReferences();
             }
         }
     }
 
-    void CreateCell(Vector2i position, int volume)
-    {
+    void CreateCell(Vector2i position, int volume) {
         int x = position.x;
         int y = position.y;
 
@@ -203,22 +197,18 @@ public class WaterController : MonoBehaviour
             dbCreateGameObject(position, volume);
     }
 
-    void UpdateCellVolume(int x, int y, float volume)
-    {
+    void UpdateCellVolume(int x, int y, float volume) {
         //Check cell is in range
-        if (x < waterCellArray.GetLength(0) && x >= 0 && y < waterCellArray.GetLength(1) && y >= 0)
-        {
+        if (x < waterCellArray.GetLength(0) && x >= 0 && y < waterCellArray.GetLength(1) && y >= 0) {
             waterCellArray[x, y].volume = volume;
             waterCellArray[x, y].fActive = true;
         }
-        else
-        {
+        else {
             Debug.Log("Created cell is not in range: x: " + x + " y: " + y);
         }
     }
 
-    void dbCreateGameObject(Vector2i position, int volume)
-    {
+    void dbCreateGameObject(Vector2i position, int volume) {
         int x = position.x;
         int y = position.y;
 
@@ -227,37 +217,31 @@ public class WaterController : MonoBehaviour
         waterCellArray[x, y].getGameObject().GetComponent<WaterInfo>().position = new Vector2i(x, y);
     }
 
-    void dbUpdateGameObjects()
-    {
-        foreach (Vector2i index in activeCellIndexListB)
-        {
+    void dbUpdateGameObjects() {
+        foreach (Vector2i index in activeCellIndexListB) {
             waterCellArray[index.x, index.y].getGameObject().transform.position = new Vector3(waterCellArray[index.x, index.y].position.x,
                 waterCellArray[index.x, index.y].volume,
                 waterCellArray[index.x, index.y].position.y);
         }
     }
 
-    void BuildWorldHeightArray()
-    {
+    void BuildWorldHeightArray() {
         //Ignore floor layer 
         int layerMask = 9 << 8;
         layerMask = ~layerMask;
 
-        for (int i = 0; i < worldHeightArray.GetLength(0); i++)
-        {
-            for (int j = 0; j < worldHeightArray.GetLength(1); j++)
-            {
+        for (int i = 0; i < worldHeightArray.GetLength(0); i++) {
+            for (int j = 0; j < worldHeightArray.GetLength(1); j++) {
                 //Initialise all to being empty
                 worldHeightArray[i, j] = 0;
                 //Store height we're currently checking
                 int height = 0;
                 //Check if area has any colliders in
-                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f, layerMask);
+                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, layerMask);
                 //While there is something in this spot, keep searching upwards until there is a space
-                while (hitColliders.Length > 0)
-                {
+                while (hitColliders.Length > 0) {
                     height++;
-                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f, layerMask);
+                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, layerMask);
                 }
                 //Store the height we got to 
                 worldHeightArray[i, j] = height;
@@ -268,24 +252,19 @@ public class WaterController : MonoBehaviour
         }
     }
 
-    void UpdateCells()
-    {
+    void UpdateCells() {
         //For each cell in cell index list A
-        foreach (Vector2i index in activeCellIndexListA)
-        {
+        foreach (Vector2i index in activeCellIndexListA) {
             //And if cell is active
             //if (waterCellArray[index.x, index.y].fActive)
             {
                 //Compare against all neighbours
-                foreach (Direction dir in neighboursToCompare)
-                {
+                foreach (Direction dir in neighboursToCompare) {
                     //If neighbour exists and is in range
-                    if (index.x < gridSizeX - 1 && index.y < gridSizeY - 1 && index.x > 0 && index.y > 0)
-                    {
+                    if (index.x < gridSizeX - 1 && index.y < gridSizeY - 1 && index.x > 0 && index.y > 0) {
                         //Get addition vector from direction we are checking
                         Vector2i additionVec2i = new Vector2i(0, 0);
-                        switch (dir)
-                        {
+                        switch (dir) {
                             case Direction.xPositive:
                                 additionVec2i = new Vector2i(1, 0);
                                 break;
@@ -309,11 +288,9 @@ public class WaterController : MonoBehaviour
                         //Get reference to neighbour cell
                         WaterCell neighbourCell = waterCellArray[index.x + additionVec2i.x, index.y + additionVec2i.y];
                         //If neighbour is not done
-                        if (!neighbourCell.fDone)
-                        {
+                        if (!neighbourCell.fDone) {
                             //If difference between volumes is greater than min amount
-                            if (Mathf.Abs(waterCellArray[index.x, index.y].volume - neighbourCell.volume) > minVolume)
-                            {
+                            if (Mathf.Abs(waterCellArray[index.x, index.y].volume - neighbourCell.volume) > minVolume) {
                                 //Set previous volume to current volume
                                 waterCellArray[index.x, index.y].previousVolume = waterCellArray[index.x, index.y].volume;
                                 //Adjust this volume
@@ -322,14 +299,12 @@ public class WaterController : MonoBehaviour
                                 neighbourCell.volume += (waterCellArray[index.x, index.y].previousVolume - neighbourCell.volume) * baseFlowRate;
 
                                 //If neighbour is not active
-                                if (!neighbourCell.fActive)
-                                {
+                                if (!neighbourCell.fActive) {
                                     neighbourCell.fActive = true;
                                     activeCellIndexListB.Add(neighbourCell.position);
                                 }
                                 //If this cell is not active
-                                if (!waterCellArray[index.x, index.y].fActive)
-                                {
+                                if (!waterCellArray[index.x, index.y].fActive) {
                                     waterCellArray[index.x, index.y].fActive = true;
                                     activeCellIndexListB.Add(waterCellArray[index.x, index.y].position);
                                 }
@@ -344,8 +319,7 @@ public class WaterController : MonoBehaviour
         }
 
         //For cells in list B
-        foreach (Vector2i index in activeCellIndexListB)
-        {
+        foreach (Vector2i index in activeCellIndexListB) {
             //Reset flags
             //waterCellArray[index.x, index.y].fActive = false;
             waterCellArray[index.x, index.y].fDone = false;

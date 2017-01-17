@@ -7,6 +7,7 @@ public class BuildingController : MonoBehaviour {
 
     public Material PlaceMaterial;
     public GameObject SandbagsPrefab;
+    public bool bIsPlacing = false;
 
     public BuildingController() {
         Current = this;
@@ -23,10 +24,16 @@ public class BuildingController : MonoBehaviour {
 	}
 
     public void PlaceSandbags () {
-        GameObject newSandbags = (GameObject)Instantiate(SandbagsPrefab);
-        newSandbags.AddComponent<PlaceBuilding>();
-        //Instantiate object
-        //Attach placing building script
-        //Click to place, delete current building, instantiate new one at position
+        //If not currently placing a building
+        if (!bIsPlacing) {
+            GameObject newSandbags = (GameObject)Instantiate(SandbagsPrefab);
+            newSandbags.AddComponent<PlaceBuilding>();
+            //Instantiate object
+            //Attach placing building script
+            //Click to place, delete current building, instantiate new one at position
+        }
+        else {
+            Debug.Log("Already placing a building!");
+        }
     }
 }
