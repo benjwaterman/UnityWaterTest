@@ -239,6 +239,10 @@ public class WaterController : MonoBehaviour
 
     void BuildWorldHeightArray()
     {
+        //Ignore floor layer 
+        int layerMask = 9 << 8;
+        layerMask = ~layerMask;
+
         for (int i = 0; i < worldHeightArray.GetLength(0); i++)
         {
             for (int j = 0; j < worldHeightArray.GetLength(1); j++)
@@ -248,12 +252,12 @@ public class WaterController : MonoBehaviour
                 //Store height we're currently checking
                 int height = 0;
                 //Check if area has any colliders in
-                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f);
+                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f, layerMask);
                 //While there is something in this spot, keep searching upwards until there is a space
                 while (hitColliders.Length > 0)
                 {
                     height++;
-                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f);
+                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.49f, layerMask);
                 }
                 //Store the height we got to 
                 worldHeightArray[i, j] = height;
