@@ -71,20 +71,20 @@ public class WaterController : MonoBehaviour {
 
     void Update() {
         //if(activeCellIndexListA.Count > 0)
-        if (timePassed > 0.0) {
-            UpdateCells();
-            UpdateMesh();
-            ApplyMesh();
-
-            //Updates height of gameobjects, for debugging
-            if (fDebug)
-                dbUpdateGameObjects();
-
-            timePassed = 0;
-        }
-
         //If not paused update time passed
         if (!bIsPaused) {
+            //Water runs at 60 fps
+            if (timePassed > 0.016) {
+                UpdateCells();
+                UpdateMesh();
+                ApplyMesh();
+
+                //Updates height of gameobjects, for debugging
+                if (fDebug)
+                    dbUpdateGameObjects();
+
+                timePassed = 0;
+            }
             timePassed += Time.deltaTime;
         }
     }

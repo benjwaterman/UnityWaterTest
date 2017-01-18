@@ -11,6 +11,8 @@ public class PlaceBuilding : MonoBehaviour {
     Material thisMaterial;
     //Store renderer component
     Renderer thisRenderer;
+    //Store building that we're placing
+    Building thisBuilding;
     //Bool if building can be placed 
     bool bCanPlace = false;
     //Stores bounds of collider for calculating grid position 
@@ -30,6 +32,8 @@ public class PlaceBuilding : MonoBehaviour {
         gameObject.GetComponent<Collider>().enabled = false;
         //Store this material
         thisMaterial = gameObject.GetComponent<Renderer>().material;
+        //Store building
+        thisBuilding = gameObject.GetComponent<Building>();
         //Change material to transparent material
         gameObject.GetComponent<Renderer>().material = BuildingController.Current.PlaceMaterial;
         //Assign renderer
@@ -37,7 +41,7 @@ public class PlaceBuilding : MonoBehaviour {
         //Tell building controller we are placing an object
         BuildingController.Current.bIsPlacing = true;
         //Add mesh collider to water so building cant be placed in water
-        //WaterController.Current.gameObject.AddComponent<MeshCollider>();
+        WaterController.Current.gameObject.AddComponent<MeshCollider>();
     }
 
     // Update is called once per frame
@@ -58,7 +62,7 @@ public class PlaceBuilding : MonoBehaviour {
             }
         }
 
-        //Check for any collisions, excluding the floor
+        //Check for any collisions, excluding the floor. We reduce the extents by 0.1f in order to allow buildings to be placed directly next to each other, as otherwise a collision it detected
         var hitColliders = Physics.OverlapBox(transform.position, new Vector3(objectExtents.x - 0.1f, objectExtents.y, objectExtents.z - 0.1f), transform.rotation, ~layerMask);
         //Object is colliding
         if (hitColliders.Length > 0) {
@@ -89,18 +93,31 @@ public class PlaceBuilding : MonoBehaviour {
     }
 
     void Place() {
-        if (bCanPlace) {
-            //Set the colour back to its original
-            thisRenderer.material.color = Color.white;
-            //Re enable the collider
-            gameObject.GetComponent<Collider>().enabled = true;
-            //Assign original material
-            thisRenderer.material = thisMaterial;
-            //Destroy this component 
-            Destroy(this);
+        //If player has enough credits
+        if (GameController.Current.currentCredits >= thisBuilding.buildingCost) {
+            //If can place
+            if (bCanPlace) {
+                //Update credits
+                GameController.Current.currentCredits -= thisBuilding.buildingCost;
+                //Set the colour back to its original
+                thisRenderer.material.color = Color.white;
+                //Re enable the collider
+                gameObject.GetComponent<Collider>().enabled = true;
+                //Assign original material
+                thisRenderer.material = thisMaterial;
+                //Tell the building it has been placed
+                thisBuilding.Construct();
+                //Destroy this component 
+                Destroy(this);
+            }
+            //Not a suitable location
+            else {
+                Debug.Log("Can't place here");
+            }
         }
+        //Not enough credits
         else {
-            Debug.Log("Can't place here");
+            Debug.Log("Not enough credits");
         }
     }
 
@@ -111,5 +128,7 @@ public class PlaceBuilding : MonoBehaviour {
     //When script is destroyed, no longer placing a building
     void OnDestroy() {
         BuildingController.Current.bIsPlacing = false;
+        //Destroy mesh collider attached to water, this is for performance reasons
+        Destroy(WaterController.Current.gameObject.GetComponent<MeshCollider>());
     }
 }

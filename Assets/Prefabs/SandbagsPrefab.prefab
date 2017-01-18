@@ -103,5 +103,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingName: Sandbags
-  buildingHealth: 10
+  buildingHealth: 100
   buildingCost: 100
+  ConstructionSpeed: 0.5

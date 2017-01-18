@@ -1,24 +1,92 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour {
+    public static GameController Current;
 
-    // Use this for initialization
-    void Start() {
+    [Header("Debug")]
+    public bool bIsPaused = false;
+    public int currentCredits;
+    [Header("Game Values")]
+    public int DayLength = 10; //How long each day is in seconds
+    public int StartingCredits = 1000;
+    [Header("UI References")]
+    public Button ResumeButton;
+    public Button[] BuildingButtons;
+    public Slider DaySlider;
+    public Text CreditsText;
+    public Text DayText;
+    public Image BackgroundImage;
 
+    float timePassed = 0;
+    int dayCounter = 1;
+
+    public GameController() {
+        Current = this;
     }
 
-    // Update is called once per frame
+    void Start() {
+        //Make buttons not interactable
+        SetButtonInteractable(false);
+        //Set current credits to starting credits
+        currentCredits = StartingCredits;
+    }
+
     void Update() {
+        //If game is not paused
+        if (!bIsPaused) {
+            //Update slider to visualise time passing
+            DaySlider.value = timePassed / DayLength;
+
+            if (timePassed > DayLength) {
+                //End of day, pause game
+                PauseGame();
+                //Reset counter
+                timePassed = 0;
+                //Increase day counter
+                dayCounter++;
+            }
+            timePassed += Time.deltaTime;
+        }
+
+        ////////////////Should put in a function
+        CreditsText.text = currentCredits + " Cr";
+        DayText.text = "Day " + dayCounter;
+
+        //Consider moving to input manager
         //If p is pressed, pause game
         if (Input.GetKeyDown(KeyCode.P)) {
-            WaterController.Current.bIsPaused = !WaterController.Current.bIsPaused;
+            PauseGame();
         }
 
         //If press enter, recalculate 
         if (Input.GetKeyDown(KeyCode.Return)) {
             Debug.Log("Refreshing world height array");
             WaterController.Current.RefreshWorld();
+        }
+    }
+
+    public void PauseGame() {
+        bIsPaused = true;
+        WaterController.Current.bIsPaused = bIsPaused;
+
+        SetButtonInteractable(true);
+    }
+
+    public void ResumeGame() {
+        bIsPaused = false;
+        WaterController.Current.bIsPaused = bIsPaused;
+        WaterController.Current.RefreshWorld();
+        BuildingController.Current.TurnOffActiveModes();
+
+        SetButtonInteractable(false);
+    }
+
+    void SetButtonInteractable(bool canInteract) {
+        ResumeButton.interactable = canInteract;
+        foreach (Button button in BuildingButtons) {
+            button.interactable = canInteract;
         }
     }
 }
