@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour {
@@ -8,6 +9,8 @@ public class GameController : MonoBehaviour {
     [Header("Debug")]
     public bool bIsPaused = false;
     public int currentCredits;
+    //Store a list of the objective buildings that need to be protected from water
+    public List<GameObject> ObjectivesList = new List<GameObject>();
     [Header("Game Values")]
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
@@ -69,14 +72,14 @@ public class GameController : MonoBehaviour {
 
     public void PauseGame() {
         bIsPaused = true;
-        WaterController.Current.bIsPaused = bIsPaused;
+        WaterController.Current.Pause();
 
         SetButtonInteractable(true);
     }
 
     public void ResumeGame() {
         bIsPaused = false;
-        WaterController.Current.bIsPaused = bIsPaused;
+        WaterController.Current.Resume();
         WaterController.Current.RefreshWorld();
         BuildingController.Current.TurnOffActiveModes();
 

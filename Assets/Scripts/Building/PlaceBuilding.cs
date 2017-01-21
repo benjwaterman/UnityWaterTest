@@ -41,7 +41,7 @@ public class PlaceBuilding : MonoBehaviour {
         //Tell building controller we are placing an object
         BuildingController.Current.bIsPlacing = true;
         //Add mesh collider to water so building cant be placed in water
-        WaterController.Current.gameObject.AddComponent<MeshCollider>();
+        //WaterController.Current.gameObject.AddComponent<MeshCollider>();
     }
 
     // Update is called once per frame
@@ -55,9 +55,9 @@ public class PlaceBuilding : MonoBehaviour {
                 //Lock to grid
                 Vector3 position = Vector3.zero;
                 //Add half length of object to make sure its aligned with grid
-                position.x = Mathf.Round(hit.point.x);// + colliderExtents.x;
+                position.x = Mathf.Round(hit.point.x) + colliderExtents.x % 1;// + colliderExtents.x;
                 position.y = hit.point.y + colliderExtents.y;
-                position.z = Mathf.Round(hit.point.z);// + colliderExtents.z;
+                position.z = Mathf.Round(hit.point.z) + colliderExtents.z % 1;// + colliderExtents.z;
                 transform.position = position;
             }
         }
@@ -107,6 +107,16 @@ public class PlaceBuilding : MonoBehaviour {
                 thisRenderer.material = thisMaterial;
                 //Tell the building it has been placed
                 thisBuilding.Construct();
+                //If shift is held
+                if (Input.GetKey(KeyCode.LeftShift)) {
+                    //Create another building to place
+                    if (gameObject.GetComponent<Sandbags>()) {
+                        BuildingController.Current.PlaceSandbags();
+                    }
+                    else if(gameObject.GetComponent<Dam>()) {
+                        BuildingController.Current.PlaceDam();
+                    }
+                }
                 //Destroy this component 
                 Destroy(this);
             }
@@ -129,6 +139,6 @@ public class PlaceBuilding : MonoBehaviour {
     void OnDestroy() {
         BuildingController.Current.bIsPlacing = false;
         //Destroy mesh collider attached to water, this is for performance reasons
-        Destroy(WaterController.Current.gameObject.GetComponent<MeshCollider>());
+        //Destroy(WaterController.Current.gameObject.GetComponent<MeshCollider>());
     }
 }

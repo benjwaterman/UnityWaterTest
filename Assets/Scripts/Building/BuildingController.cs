@@ -7,6 +7,7 @@ public class BuildingController : MonoBehaviour {
 
     public Material PlaceMaterial;
     public GameObject SandbagsPrefab;
+    public GameObject DamPrefab;
     public bool bIsPlacing = false;
     public float RefundPercentage = 0.8f;
 
@@ -35,19 +36,22 @@ public class BuildingController : MonoBehaviour {
                         //Remove building
                         RemoveBuilding(hit.transform.gameObject);
                     }
-
                 }
             }
 
             //If right mouse click or escape
             if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape)) {
-                bIsDemolishing = false;
+                TurnOffActiveModes();
             }
         }
     }
 
     public void PlaceSandbags() {
         CreateBuilding(SandbagsPrefab);
+    }
+
+    public void PlaceDam() {
+        CreateBuilding(DamPrefab);
     }
 
     public void DemolishBuilding() {

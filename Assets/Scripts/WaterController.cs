@@ -34,6 +34,7 @@ public class WaterController : MonoBehaviour {
     float minVolume = 0.005f;
     float baseFlowRate = 0.25f;
     float timePassed = 0;
+    float meshTimer = 0;
 
     Direction[] neighboursToCompare = { Direction.xPositive, Direction.xNegative, Direction.zPositive, Direction.zNegative };
 
@@ -44,7 +45,7 @@ public class WaterController : MonoBehaviour {
     int[] triangles;
 
     //Bool to store paused state
-    public bool bIsPaused = false;
+    bool bIsPaused = false;
 
     void Start() {
         //Initialise cell array
@@ -54,9 +55,11 @@ public class WaterController : MonoBehaviour {
         BuildWorldHeightArray();
 
         //Create starting cell(s)
-        UpdateCellVolume(50, 50, 5000);
-        //UpdateCellVolume(70, 50, 5000);
-        //UpdateCellVolume(90, 50, 5000);
+        UpdateCellVolume(90, 5, 1000);
+        UpdateCellVolume(90, 55, 1000);
+        UpdateCellVolume(90, 95, 1000);
+        UpdateCellVolume(90, 25, 1000);
+        UpdateCellVolume(90, 75, 1000);
 
         //Initialise the mesh variables
         UpdateMesh();
@@ -64,6 +67,9 @@ public class WaterController : MonoBehaviour {
         //Assign mesh to gameobject
         Mesh waterMesh = new Mesh();
         gameObject.AddComponent<MeshFilter>().mesh = waterMesh;
+
+        //Apply mesh collider
+        UpdateMeshCollider();
 
         //Apply variables to mesh
         ApplyMesh();
@@ -87,6 +93,23 @@ public class WaterController : MonoBehaviour {
             }
             timePassed += Time.deltaTime;
         }
+
+        //Update mesh every .5s
+        if (meshTimer > 1) {
+            UpdateMeshCollider();
+
+            meshTimer = 0;
+        }
+        meshTimer += Time.deltaTime;
+    }
+
+    public void Pause() {
+        bIsPaused = true;
+        UpdateMeshCollider();
+    }
+
+    public void Resume() {
+        bIsPaused = false;
     }
 
     public void RefreshWorld() {
@@ -157,8 +180,15 @@ public class WaterController : MonoBehaviour {
         waterMesh.uv = uvs;
         waterMesh.triangles = triangles;
 
+        waterMesh.RecalculateBounds();
         waterMesh.RecalculateNormals();
         waterMesh.Optimize();
+    }
+
+    void UpdateMeshCollider() {
+        Mesh waterMesh = gameObject.GetComponent<MeshFilter>().mesh;
+        MeshCollider waterMeshCollider = GetComponent<MeshCollider>();
+        waterMeshCollider.sharedMesh = waterMesh;
     }
 
     void InitialiseCellArray() {
@@ -208,6 +238,7 @@ public class WaterController : MonoBehaviour {
         }
     }
 
+    //Debugging
     void dbCreateGameObject(Vector2i position, int volume) {
         int x = position.x;
         int y = position.y;
@@ -217,6 +248,7 @@ public class WaterController : MonoBehaviour {
         waterCellArray[x, y].getGameObject().GetComponent<WaterInfo>().position = new Vector2i(x, y);
     }
 
+    //Debugging
     void dbUpdateGameObjects() {
         foreach (Vector2i index in activeCellIndexListB) {
             waterCellArray[index.x, index.y].getGameObject().transform.position = new Vector3(waterCellArray[index.x, index.y].position.x,
@@ -226,6 +258,10 @@ public class WaterController : MonoBehaviour {
     }
 
     void BuildWorldHeightArray() {
+        //Disable mesh collider
+        MeshCollider waterMesh = GetComponent<MeshCollider>();
+        waterMesh.enabled = false;
+
         //Ignore floor layer 
         int layerMask = 9 << 8;
         layerMask = ~layerMask;
@@ -250,6 +286,9 @@ public class WaterController : MonoBehaviour {
                     worldHeightArray[i, j] = int.MaxValue;
             }
         }
+
+        //Renable mesh collider
+        waterMesh.enabled = true;
     }
 
     void UpdateCells() {
