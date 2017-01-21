@@ -21,6 +21,8 @@ public class GameController : MonoBehaviour {
     public Text CreditsText;
     public Text DayText;
     public Image BackgroundImage;
+    [Header("Objective References")]
+    public Material DemolishedBuildingMaterial;
 
     float timePassed = 0;
     int dayCounter = 1;
@@ -75,6 +77,7 @@ public class GameController : MonoBehaviour {
         WaterController.Current.Pause();
 
         SetButtonInteractable(true);
+        UpdateObjectives();
     }
 
     public void ResumeGame() {
@@ -91,5 +94,27 @@ public class GameController : MonoBehaviour {
         foreach (Button button in BuildingButtons) {
             button.interactable = canInteract;
         }
+    }
+
+    void UpdateObjectives() {
+        List<GameObject> hasCollidedList = new List<GameObject>();
+
+        //Check for collisions
+        foreach (GameObject obj in ObjectivesList) {
+            if (obj.GetComponent<OnWaterTouch>().CheckForWaterCollision()) {
+                //Add to has collided list
+                hasCollidedList.Add(obj);
+            }
+        }
+
+        foreach (GameObject obj in hasCollidedList) {
+            //Remove from objectives list
+            ObjectivesList.Remove(obj);
+            //Call demolish function
+            obj.GetComponent<OnWaterTouch>().DemolishSelf();
+        }
+
+        //Clear the list
+        hasCollidedList.Clear();
     }
 }

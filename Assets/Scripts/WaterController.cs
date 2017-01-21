@@ -32,7 +32,7 @@ public class WaterController : MonoBehaviour {
     List<Vector2i> tempList = new List<Vector2i>();
 
     float minVolume = 0.005f;
-    float baseFlowRate = 0.25f;
+    float baseFlowRate = 0.45f; //0.25
     float timePassed = 0;
     float meshTimer = 0;
 
@@ -68,11 +68,11 @@ public class WaterController : MonoBehaviour {
         Mesh waterMesh = new Mesh();
         gameObject.AddComponent<MeshFilter>().mesh = waterMesh;
 
-        //Apply mesh collider
-        UpdateMeshCollider();
-
         //Apply variables to mesh
         ApplyMesh();
+
+        //Apply mesh collider
+        UpdateMeshCollider();
     }
 
     void Update() {
@@ -94,13 +94,13 @@ public class WaterController : MonoBehaviour {
             timePassed += Time.deltaTime;
         }
 
-        //Update mesh every .5s
-        if (meshTimer > 1) {
-            UpdateMeshCollider();
+        //Update mesh collider every .5s
+        //if (meshTimer > 1) {
+        //    UpdateMeshCollider();
 
-            meshTimer = 0;
-        }
-        meshTimer += Time.deltaTime;
+        //    meshTimer = 0;
+        //}
+        //meshTimer += Time.deltaTime;
     }
 
     public void Pause() {
@@ -113,10 +113,7 @@ public class WaterController : MonoBehaviour {
     }
 
     public void RefreshWorld() {
-        //Pause while rebuilding world height array
-        bIsPaused = true;
         BuildWorldHeightArray();
-        bIsPaused = false;
     }
 
     //Code adapted from http://wiki.unity3d.com/index.php/ProceduralPrimitives
