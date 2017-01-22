@@ -14,7 +14,7 @@ public class OnWaterTouch : MonoBehaviour {
 
     void Start() {
         //Add self to list of buildings that need to be protected
-        GameController.Current.ObjectivesList.Add(this.gameObject);
+        GameController.Current.AddObjective(this.gameObject);
 
         colliderExtents = gameObject.GetComponent<Collider>().bounds.extents;
         layerMask = LayerMask.NameToLayer("Water") << 8;
@@ -33,7 +33,7 @@ public class OnWaterTouch : MonoBehaviour {
     }
 
     public bool CheckForWaterCollision() {
-        //Check if colliding with water 
+        //Check if colliding with water, it is counted as colliding if there is water in the block next to this one
         var hitColliders = Physics.OverlapBox(transform.position, colliderExtents + new Vector3(0.9f, 0.05f, 0), transform.rotation);
         if (hitColliders.Length > 0) {
             foreach (Collider coll in hitColliders) {
@@ -48,8 +48,6 @@ public class OnWaterTouch : MonoBehaviour {
     public void DemolishSelf() {
         //Has collided
         bHasCollided = true;
-        //Remove from list of undestroyed buildings
-        GameController.Current.ObjectivesList.Remove(this.gameObject);
         //Disable collider so it isnt included in the world height array
         GetComponent<Collider>().enabled = false;
         //Change material to demolished material
@@ -58,10 +56,5 @@ public class OnWaterTouch : MonoBehaviour {
         bIsDemolishing = true;
         //Set target height to 3/4 beneath surface
         demolishedPosition = transform.position - new Vector3(0, (colliderExtents.x * 1.5f), 0);
-
-        //Update world height array
-        //WaterController.Current.RefreshWorld();
-        //Destory this
-        //Destroy(this.gameObject);
     }
 }

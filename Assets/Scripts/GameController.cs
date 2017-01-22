@@ -9,8 +9,6 @@ public class GameController : MonoBehaviour {
     [Header("Debug")]
     public bool bIsPaused = false;
     public int currentCredits;
-    //Store a list of the objective buildings that need to be protected from water
-    public List<GameObject> ObjectivesList = new List<GameObject>();
     [Header("Game Values")]
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
@@ -21,11 +19,21 @@ public class GameController : MonoBehaviour {
     public Text CreditsText;
     public Text DayText;
     public Image BackgroundImage;
+    public Text ObjectivesText;
+    public GameObject LoadingPanel;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
+    public GameObject[] BarriersToDestory;
+
+    //Store a list of the objective buildings that need to be protected from water
+    List<GameObject> ObjectivesList = new List<GameObject>();
 
     float timePassed = 0;
-    int dayCounter = 1;
+    int dayCounter = 0;
+    //Number of objective in total
+    int objectivesCount;
+    //Number of objectives yet to be destroyed
+    int objectivesStillActive;
 
     public GameController() {
         Current = this;
@@ -36,9 +44,23 @@ public class GameController : MonoBehaviour {
         SetButtonInteractable(false);
         //Set current credits to starting credits
         currentCredits = StartingCredits;
+        //Make sure objectives list is empty
+        ObjectivesList.Clear();
+        //Enable panel
+        LoadingPanel.SetActive(true);
     }
 
     void Update() {
+        //While day is = 0, game is loading
+        if(dayCounter == 0) {
+            //Increase loading percent 
+            LoadingPanel.transform.GetChild(1).GetComponent<Text>().text = Mathf.Round(timePassed / DayLength * 100).ToString() + "%";
+        }
+        //Else if panel is active, disable it
+        else if(LoadingPanel.activeSelf) {
+            LoadingPanel.SetActive(false);
+        }
+
         //If game is not paused
         if (!bIsPaused) {
             //Update slider to visualise time passing
@@ -51,6 +73,8 @@ public class GameController : MonoBehaviour {
                 timePassed = 0;
                 //Increase day counter
                 dayCounter++;
+                //Reset slider
+                DaySlider.value = 0;
             }
             timePassed += Time.deltaTime;
         }
@@ -58,6 +82,7 @@ public class GameController : MonoBehaviour {
         ////////////////Should put in a function
         CreditsText.text = currentCredits + " Cr";
         DayText.text = "Day " + dayCounter;
+        ObjectivesText.text = objectivesStillActive + "/" + objectivesCount + " buildings standing";
 
         //Consider moving to input manager
         //If p is pressed, pause game
@@ -72,6 +97,12 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    public void AddObjective(GameObject objective) {
+        ObjectivesList.Add(objective);
+        objectivesCount++;
+        objectivesStillActive++;
+    }
+
     public void PauseGame() {
         bIsPaused = true;
         WaterController.Current.Pause();
@@ -81,6 +112,13 @@ public class GameController : MonoBehaviour {
     }
 
     public void ResumeGame() {
+        //If first day, destory the barriers
+        if (dayCounter == 1) {
+            foreach (GameObject barrier in BarriersToDestory) {
+                barrier.SetActive(false);
+            }
+        }
+
         bIsPaused = false;
         WaterController.Current.Resume();
         WaterController.Current.RefreshWorld();
@@ -112,6 +150,8 @@ public class GameController : MonoBehaviour {
             ObjectivesList.Remove(obj);
             //Call demolish function
             obj.GetComponent<OnWaterTouch>().DemolishSelf();
+            //Decrement objectives still active
+            objectivesStillActive--;
         }
 
         //Clear the list

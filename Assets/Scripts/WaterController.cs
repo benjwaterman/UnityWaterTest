@@ -8,15 +8,15 @@ public class WaterController : MonoBehaviour {
     //Singleton reference
     public static WaterController Current;
     //For debugging water
-    public static bool fDebug = false;
+    public const bool fDebug = false;
 
     public WaterController() {
         Current = this;
     }
 
     public GameObject waterObject;
-    public static int gridSizeX = 100;
-    public static int gridSizeY = 100;
+    public const int gridSizeX = 100;
+    public const int gridSizeY = 100;
 
     public WaterCell[,] waterCellArray = new WaterCell[gridSizeX, gridSizeY];
 
@@ -317,9 +317,21 @@ public class WaterController : MonoBehaviour {
                                 additionVec2i = new Vector2i(0, -1);
                                 break;
                         }
-                        //Check for solids in world height array
-                        if (waterCellArray[index.x, index.y].volume < worldHeightArray[index.x + additionVec2i.x, index.y + additionVec2i.y])
+                        if(index.x + additionVec2i.x == 60 && index.y + additionVec2i.y == 57) {
+                            if (index.x == 61 && index.y == 57) {
+                                int randomInt = 0;
+                            }
+                        }
+                        //Check for solids in world height array, if this cell is less than the height of the solid, break out
+                        if (waterCellArray[index.x, index.y].volume < worldHeightArray[index.x + additionVec2i.x, index.y + additionVec2i.y]) {
                             break;
+                        }
+
+                        //If this block is in a solid, volume should be 0
+                        if (worldHeightArray[index.x, index.y] > 0) {
+                            waterCellArray[index.x, index.y].volume = 0;
+                            break;
+                        }
 
                         //Get reference to neighbour cell
                         WaterCell neighbourCell = waterCellArray[index.x + additionVec2i.x, index.y + additionVec2i.y];
