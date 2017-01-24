@@ -15,8 +15,8 @@ public class WaterController : MonoBehaviour {
     }
 
     public GameObject waterObject;
-    public const int gridSizeX = 100;
-    public const int gridSizeY = 100;
+    public const int gridSizeX = 101;
+    public const int gridSizeY = 101;
 
     public WaterCell[,] waterCellArray = new WaterCell[gridSizeX, gridSizeY];
 
@@ -62,9 +62,9 @@ public class WaterController : MonoBehaviour {
         //UpdateCellVolume(90, 75, 1000);
 
         //Fill river
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 98; j++) {
-                UpdateCellVolume(80 + i, 1 + j, 1);
+        for (int i = 0; i < 22; i++) {
+            for (int j = 0; j < 101; j++) {
+                UpdateCellVolume(79 + i, j, 1);
             }
         }
 
@@ -90,10 +90,10 @@ public class WaterController : MonoBehaviour {
             if (timePassed > 0.016) {
 
                 //Flow coming into the river
-                for (int i = 0; i < 20; i++) {
-                    UpdateCellVolume(80 + i, 98, 4);
-                    UpdateCellVolume(80 + i, 97, 4);
-                    UpdateCellVolume(80 + i, 96, 4);
+                for (int i = 0; i < 22; i++) {
+                    UpdateCellVolume(79 + i, 100, 4);
+                    UpdateCellVolume(79 + i, 99, 4);
+                    UpdateCellVolume(79 + i, 98, 4);
                 }
 
                 UpdateCells();
@@ -110,7 +110,7 @@ public class WaterController : MonoBehaviour {
         }
 
         //Update mesh every .5s
-        if (meshTimer > 0.05) {
+        if (meshTimer > 0.0f) {
             //UpdateMeshCollider();
             UpdateMesh();
             ApplyMesh();
@@ -334,11 +334,7 @@ public class WaterController : MonoBehaviour {
                                 additionVec2i = new Vector2i(0, -1);
                                 break;
                         }
-                        if(index.x + additionVec2i.x == 60 && index.y + additionVec2i.y == 57) {
-                            if (index.x == 61 && index.y == 57) {
-                                int randomInt = 0;
-                            }
-                        }
+
                         //Check for solids in world height array, if this cell is less than the height of the solid, break out
                         if (waterCellArray[index.x, index.y].volume < worldHeightArray[index.x + additionVec2i.x, index.y + additionVec2i.y]) {
                             break;

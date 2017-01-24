@@ -58,11 +58,31 @@ public class PlaceBuilding : MonoBehaviour {
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask)) {
             if (hit.transform != null) {
                 //Lock to grid
-                Vector3 position = Vector3.zero;
+                Vector3 position = transform.position;
                 //Add half length of object to make sure its aligned with grid
-                position.x = Mathf.Round(hit.point.x) + colliderExtents.x % 1;// + colliderExtents.x;
+                //If an odd number in width
+                if (colliderExtents.x % 1 != 0) {
+                    float tempX = Mathf.Round(hit.point.x * 2) / 2;
+                    if (tempX % 1 != 0) {
+                        position.x = tempX;
+                    }
+                }
+                else {
+                    position.x = Mathf.Round(hit.point.x );
+                }
+
                 position.y = hit.point.y + colliderExtents.y;
-                position.z = Mathf.Round(hit.point.z) + colliderExtents.z % 1;// + colliderExtents.z;
+
+                if(colliderExtents.z % 1 != 0) {
+                    float tempY = Mathf.Round(hit.point.z * 2) / 2;
+                    if (tempY % 1 != 0) {
+                        position.z = tempY;
+                    }
+                } 
+                else {
+                    position.z = Mathf.Round(hit.point.z);
+                }
+
                 transform.position = position;
             }
         }

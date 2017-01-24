@@ -103,6 +103,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingName: Dam
-  buildingHealth: 500
+  buildingStrength: 5
   buildingCost: 1000
   ConstructionSpeed: 5

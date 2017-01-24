@@ -8,6 +8,8 @@ public class Ditch : Building {
     public int WaterDrainAmount;
     //Gameobject to raise bottom of ditch to match water level
     public GameObject WaterBase;
+    //What depth to sink to
+    public float SinkDepth = -0.446f;
 
     float currentDrainAmount;
     //Store list of where water could touch
@@ -19,16 +21,23 @@ public class Ditch : Building {
     protected override void Update() {
         //Still call base update
         base.Update();
-        //If game is not paused
-        if (!GameController.Current.bIsPaused) {
+        //If game is not paused and isn't constructing
+        if (!GameController.Current.bIsPaused && !bIsConstructing) {
             //If has not filled up
             if (currentDrainAmount < WaterDrainAmount) {
                 //For every index, take away the volume from cell
                 foreach (Vector2i vec2 in waterIndices) {
-                    //Keep track of water drained
-                    currentDrainAmount += WaterController.Current.waterCellArray[vec2.x, vec2.y].volume;
-                    //Take amount away from the water
-                    WaterController.Current.UpdateCellVolume(vec2.x, vec2.y, 0);
+                    try {
+                        //Keep track of water drained
+                        currentDrainAmount += WaterController.Current.waterCellArray[vec2.x, vec2.y].volume;
+                        //Take amount away from the water
+                        WaterController.Current.UpdateCellVolume(vec2.x, vec2.y, 0);
+                    }
+                    catch (System.Exception E) {
+                        Debug.Log(E.Message + " in Ditch.cs");
+                        currentDrainAmount = WaterDrainAmount;
+                        break;
+                    }
                 }
             }
 
@@ -40,27 +49,29 @@ public class Ditch : Building {
 
     //Override original construct as a ditch will place a different way from a normal building
     public override void Construct() {
-        transform.position = new Vector3(transform.position.x, -0.446f, transform.position.z);
+        //Store current position
+        position = transform.position;
+        //Depth to sink to
+        position.y = SinkDepth;
+        //Set is constructing
+        bIsConstructing = true;
 
         colliderExtents = GetComponent<Collider>().bounds.extents;
-        originalBasePosition = WaterBase.transform.position;
-        //Get all points touching where water could be
-        for (int i = 1; i <= colliderExtents.x * 2; i++) {
-            for (int j = 1; j <= colliderExtents.z * 2; j++) {
-                waterIndices.Add(new Vector2i(
-                    //X //MAKE THIS WORK
-                    Mathf.RoundToInt(transform.position.x + colliderExtents.x % 1 * i), 
-                    //Z
-                    Mathf.RoundToInt(transform.position.z + colliderExtents.z % 1 * j)
-                    ));
-
+        //Get all points touching where water could be, start left to right on x
+        for (int i = (int)-colliderExtents.x; i <= colliderExtents.x; i++) {
+            //Bottom to top for z
+            for (int j = (int)-colliderExtents.z; j <= colliderExtents.z; j++) {
                 waterIndices.Add(new Vector2i(
                     //X
-                    Mathf.RoundToInt(transform.position.x - colliderExtents.x % 1 * i), 
+                    Mathf.RoundToInt(transform.position.x + colliderExtents.x * i),
                     //Z
-                    Mathf.RoundToInt(transform.position.z - colliderExtents.z % 1 * j)
+                    Mathf.RoundToInt(transform.position.z + colliderExtents.z * j)
                     ));
             }
         }
+    }
+
+    public override void FinishedConstruction() {
+        originalBasePosition = WaterBase.transform.position;
     }
 }

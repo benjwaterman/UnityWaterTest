@@ -59,7 +59,6 @@ MonoBehaviour:
   zPositiveVolume: 0
   zNegativeVolume: 0
   hasVolumeChanged: 0
-  isResting: 0
   fDone: 0
   fActive: 0
   position:

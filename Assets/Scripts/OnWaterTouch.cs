@@ -34,7 +34,7 @@ public class OnWaterTouch : MonoBehaviour {
 
     public bool CheckForWaterCollision() {
         //Check if colliding with water, it is counted as colliding if there is water in the block next to this one
-        var hitColliders = Physics.OverlapBox(transform.position, colliderExtents + new Vector3(0.9f, 0.05f, 0), transform.rotation);
+        var hitColliders = Physics.OverlapBox(transform.position, colliderExtents + new Vector3(0.9f, 0, 0), transform.rotation);
         if (hitColliders.Length > 0) {
             foreach (Collider coll in hitColliders) {
                 if (coll.tag == ("Water")) {
