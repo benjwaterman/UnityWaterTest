@@ -7,10 +7,10 @@ public class PlaceBuilding : MonoBehaviour {
     private int layerMask = 9 << 8;
     //Store size of object to check for collisions with
     Vector3 objectExtents;
-    //Store this material
-    Material thisMaterial;
-    //Store renderer component
-    Renderer thisRenderer;
+    //Store materials
+    Material[] thisMaterial;
+    //Store renderer components
+    Renderer[] thisRenderer;
     //Store building that we're placing
     Building thisBuilding;
     //Bool if building can be placed 
@@ -30,14 +30,19 @@ public class PlaceBuilding : MonoBehaviour {
         colliderExtents = gameObject.GetComponent<Collider>().bounds.extents;
         //Disable collisions while placing the object
         gameObject.GetComponent<Collider>().enabled = false;
-        //Store this material
-        thisMaterial = gameObject.GetComponent<Renderer>().material;
+
+        //Assign renderers
+        thisRenderer = gameObject.GetComponentsInChildren<Renderer>();
+        //Initialise array with number of renderes
+        thisMaterial = new Material[thisRenderer.Length];
+        //Store materials and change material to place material
+        for (int i = 0; i < thisRenderer.Length; i++) {
+            thisMaterial[i] = thisRenderer[i].material;
+            thisRenderer[i].material = BuildingController.Current.PlaceMaterial;
+        }
+
         //Store building
         thisBuilding = gameObject.GetComponent<Building>();
-        //Change material to transparent material
-        gameObject.GetComponent<Renderer>().material = BuildingController.Current.PlaceMaterial;
-        //Assign renderer
-        thisRenderer = gameObject.GetComponent<Renderer>();
         //Tell building controller we are placing an object
         BuildingController.Current.bIsPlacing = true;
         //Add mesh collider to water so building cant be placed in water
@@ -66,13 +71,13 @@ public class PlaceBuilding : MonoBehaviour {
         var hitColliders = Physics.OverlapBox(transform.position, new Vector3(objectExtents.x - 0.1f, objectExtents.y, objectExtents.z - 0.1f), transform.rotation, ~layerMask);
         //Object is colliding
         if (hitColliders.Length > 0) {
-            thisRenderer.material.color = new Color(0.8f, 0, 0, 0.5f);
+            SetColour(new Color(0.8f, 0, 0, 0.5f));
             //Can't place while colliding
             bCanPlace = false;
         }
         //Object is not colliding
         else {
-            thisRenderer.material.color = new Color(0, 0.8f, 0, 0.5f);
+            SetColour(new Color(0, 0.8f, 0, 0.5f));
             bCanPlace = true;
         }
 
@@ -100,11 +105,13 @@ public class PlaceBuilding : MonoBehaviour {
                 //Update credits
                 GameController.Current.currentCredits -= thisBuilding.buildingCost;
                 //Set the colour back to its original
-                thisRenderer.material.color = Color.white;
+                SetColour(Color.white);
                 //Re enable the collider
                 gameObject.GetComponent<Collider>().enabled = true;
                 //Assign original material
-                thisRenderer.material = thisMaterial;
+                for (int i = 0; i < thisRenderer.Length; i++) {
+                    thisRenderer[i].material = thisMaterial[i];
+                }
                 //Tell the building it has been placed
                 thisBuilding.Construct();
                 //If shift is held
@@ -115,6 +122,9 @@ public class PlaceBuilding : MonoBehaviour {
                     }
                     else if(gameObject.GetComponent<Dam>()) {
                         BuildingController.Current.PlaceDam();
+                    }
+                    else if (gameObject.GetComponent<Ditch>()) {
+                        BuildingController.Current.PlaceDitch();
                     }
                 }
                 //Destroy this component 
@@ -133,6 +143,12 @@ public class PlaceBuilding : MonoBehaviour {
 
     void CancelPlace() {
         Destroy(gameObject);
+    }
+
+    void SetColour(Color color) {
+        foreach (Renderer ren in thisRenderer) {
+            ren.material.color = color;
+        }
     }
 
     //When script is destroyed, no longer placing a building

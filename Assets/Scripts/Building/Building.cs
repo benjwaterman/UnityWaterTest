@@ -14,7 +14,7 @@ public abstract class Building : MonoBehaviour {
     bool bIsDemolishing;
     Vector3 position;
 
-    void Update() {
+    protected virtual void Update() {
         //If building has just been placed
         if(bIsConstructing) {
             //Move upwards towards position
@@ -39,7 +39,7 @@ public abstract class Building : MonoBehaviour {
         }
     }
 
-    public void Construct() {
+    public virtual void Construct() {
         //Store position to move to
         position = transform.position;
         //Start the building under the ground
@@ -49,7 +49,7 @@ public abstract class Building : MonoBehaviour {
         bIsConstructing = true;
     }
 
-    public void Demolish() {
+    public virtual void Demolish() {
         float halfHeight = gameObject.GetComponent<Collider>().bounds.extents.y;
         position = new Vector3(transform.position.x, transform.position.y - halfHeight * 2, transform.position.z);
         //Demolishing is true

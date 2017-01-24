@@ -8,6 +8,7 @@ public class BuildingController : MonoBehaviour {
     public Material PlaceMaterial;
     public GameObject SandbagsPrefab;
     public GameObject DamPrefab;
+    public GameObject DitchPrefab;
     public bool bIsPlacing = false;
     public float RefundPercentage = 0.8f;
 
@@ -52,6 +53,10 @@ public class BuildingController : MonoBehaviour {
 
     public void PlaceDam() {
         CreateBuilding(DamPrefab);
+    }
+
+    public void PlaceDitch() {
+        CreateBuilding(DitchPrefab);
     }
 
     public void DemolishBuilding() {

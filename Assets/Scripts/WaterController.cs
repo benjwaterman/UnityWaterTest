@@ -55,11 +55,18 @@ public class WaterController : MonoBehaviour {
         BuildWorldHeightArray();
 
         //Create starting cell(s)
-        UpdateCellVolume(90, 5, 1000);
-        UpdateCellVolume(90, 55, 1000);
-        UpdateCellVolume(90, 95, 1000);
-        UpdateCellVolume(90, 25, 1000);
-        UpdateCellVolume(90, 75, 1000);
+        //UpdateCellVolume(90, 5, 1000);
+        //UpdateCellVolume(90, 55, 1000);
+        //UpdateCellVolume(90, 95, 1000);
+        //UpdateCellVolume(90, 25, 1000);
+        //UpdateCellVolume(90, 75, 1000);
+
+        //Fill river
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 98; j++) {
+                UpdateCellVolume(80 + i, 1 + j, 1);
+            }
+        }
 
         //Initialise the mesh variables
         UpdateMesh();
@@ -81,9 +88,17 @@ public class WaterController : MonoBehaviour {
         if (!bIsPaused) {
             //Water runs at 60 fps
             if (timePassed > 0.016) {
+
+                //Flow coming into the river
+                for (int i = 0; i < 20; i++) {
+                    UpdateCellVolume(80 + i, 98, 4);
+                    UpdateCellVolume(80 + i, 97, 4);
+                    UpdateCellVolume(80 + i, 96, 4);
+                }
+
                 UpdateCells();
-                UpdateMesh();
-                ApplyMesh();
+                //UpdateMesh();
+                //ApplyMesh();
 
                 //Updates height of gameobjects, for debugging
                 if (fDebug)
@@ -94,13 +109,15 @@ public class WaterController : MonoBehaviour {
             timePassed += Time.deltaTime;
         }
 
-        //Update mesh collider every .5s
-        //if (meshTimer > 1) {
-        //    UpdateMeshCollider();
+        //Update mesh every .5s
+        if (meshTimer > 0.05) {
+            //UpdateMeshCollider();
+            UpdateMesh();
+            ApplyMesh();
 
-        //    meshTimer = 0;
-        //}
-        //meshTimer += Time.deltaTime;
+            meshTimer = 0;
+        }
+        meshTimer += Time.deltaTime;
     }
 
     public void Pause() {
@@ -224,7 +241,7 @@ public class WaterController : MonoBehaviour {
             dbCreateGameObject(position, volume);
     }
 
-    void UpdateCellVolume(int x, int y, float volume) {
+    public void UpdateCellVolume(int x, int y, float volume) {
         //Check cell is in range
         if (x < waterCellArray.GetLength(0) && x >= 0 && y < waterCellArray.GetLength(1) && y >= 0) {
             waterCellArray[x, y].volume = volume;

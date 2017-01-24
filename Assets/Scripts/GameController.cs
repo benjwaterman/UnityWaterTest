@@ -12,6 +12,7 @@ public class GameController : MonoBehaviour {
     [Header("Game Values")]
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
+    public int LoadingTime = 2;
     [Header("UI References")]
     public Button ResumeButton;
     public Button[] BuildingButtons;
@@ -51,14 +52,19 @@ public class GameController : MonoBehaviour {
     }
 
     void Update() {
-        //While day is = 0, game is loading
-        if(dayCounter == 0) {
+        //While day is = 0, and timepassed is less than 2s, game is loading
+        if(dayCounter == 0 && timePassed < LoadingTime) {
             //Increase loading percent 
-            LoadingPanel.transform.GetChild(1).GetComponent<Text>().text = Mathf.Round(timePassed / DayLength * 100).ToString() + "%";
+            LoadingPanel.transform.GetChild(1).GetComponent<Text>().text = Mathf.Round(timePassed / LoadingTime * 100).ToString() + "%";
         }
-        //Else if panel is active, disable it
+        //Else if panel is active, disable it, as no longer loading
         else if(LoadingPanel.activeSelf) {
             LoadingPanel.SetActive(false);
+            //Start new day
+            dayCounter++;
+            timePassed = 0;
+            DaySlider.value = 0;
+            PauseGame();
         }
 
         //If game is not paused
