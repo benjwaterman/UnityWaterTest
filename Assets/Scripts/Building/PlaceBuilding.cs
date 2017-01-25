@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class PlaceBuilding : MonoBehaviour {
-    //Bitshift to get layer mask to compare against, 9 is layer of "Floor"
-    private int layerMask = 9 << 8;
+    //What is classed as floor
+    LayerMask floorLayerMask;
+    //What the building cant be placed in
+    LayerMask buildingCollisionLayers;
     //Store size of object to check for collisions with
     Vector3 objectExtents;
     //Store materials
@@ -20,6 +22,9 @@ public class PlaceBuilding : MonoBehaviour {
 
     // Use this for initialization
     void Start() {
+        //Get layermask
+        buildingCollisionLayers = BuildingController.Current.BuildingCollisionLayers;
+        floorLayerMask = BuildingController.Current.FloorLayerMask;
         //Get size of base mesh
         objectExtents = GetComponent<MeshFilter>().mesh.bounds.extents;
         //Multiply it by the scale of the object
@@ -55,7 +60,7 @@ public class PlaceBuilding : MonoBehaviour {
         RaycastHit hit;
         //Make position same as where mouse is, as long as it is over terrain
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask)) {
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, floorLayerMask)) {
             if (hit.transform != null) {
                 //Lock to grid
                 Vector3 position = transform.position;
@@ -63,8 +68,13 @@ public class PlaceBuilding : MonoBehaviour {
                 //If an odd number in width
                 if (colliderExtents.x % 1 != 0) {
                     float tempX = Mathf.Round(hit.point.x * 2) / 2;
+                    //If not a whole number
                     if (tempX % 1 != 0) {
                         position.x = tempX;
+                    }
+                    //Else is a whole number
+                    else {
+                        position.x = tempX + 0.5f;
                     }
                 }
                 else {
@@ -78,6 +88,9 @@ public class PlaceBuilding : MonoBehaviour {
                     if (tempY % 1 != 0) {
                         position.z = tempY;
                     }
+                    else {
+                        position.z = tempY + 0.5f;
+                    }
                 } 
                 else {
                     position.z = Mathf.Round(hit.point.z);
@@ -88,7 +101,7 @@ public class PlaceBuilding : MonoBehaviour {
         }
 
         //Check for any collisions, excluding the floor. We reduce the extents by 0.1f in order to allow buildings to be placed directly next to each other, as otherwise a collision it detected
-        var hitColliders = Physics.OverlapBox(transform.position, new Vector3(objectExtents.x - 0.1f, objectExtents.y, objectExtents.z - 0.1f), transform.rotation, ~layerMask);
+        var hitColliders = Physics.OverlapBox(transform.position, new Vector3(objectExtents.x - 0.1f, objectExtents.y, objectExtents.z - 0.1f), transform.rotation, buildingCollisionLayers);
         //Object is colliding
         if (hitColliders.Length > 0) {
             SetColour(new Color(0.8f, 0, 0, 0.5f));
@@ -114,6 +127,11 @@ public class PlaceBuilding : MonoBehaviour {
         //When R is pressed rotate
         if (Input.GetKeyDown(KeyCode.R)) {
             transform.Rotate(0, 90, 0);
+
+            //Invert collider extents
+            float temp = colliderExtents.x;
+            colliderExtents.x = colliderExtents.z;
+            colliderExtents.z = temp;
         }
     }
 

@@ -14,6 +14,8 @@ public class WaterController : MonoBehaviour {
         Current = this;
     }
 
+    //Layers the water should collide with
+    public LayerMask WaterCollisionLayers;
     public GameObject waterObject;
     public const int gridSizeX = 101;
     public const int gridSizeY = 101;
@@ -64,7 +66,7 @@ public class WaterController : MonoBehaviour {
         //Fill river
         for (int i = 0; i < 22; i++) {
             for (int j = 0; j < 101; j++) {
-                UpdateCellVolume(79 + i, j, 1);
+                UpdateCellVolume(79 + i, j, 2);
             }
         }
 
@@ -91,14 +93,12 @@ public class WaterController : MonoBehaviour {
 
                 //Flow coming into the river
                 for (int i = 0; i < 22; i++) {
-                    UpdateCellVolume(79 + i, 100, 4);
-                    UpdateCellVolume(79 + i, 99, 4);
-                    UpdateCellVolume(79 + i, 98, 4);
+                    UpdateCellVolume(79 + i, 100, 2);
+                    UpdateCellVolume(79 + i, 99, 2);
+                    UpdateCellVolume(79 + i, 98, 2);
                 }
 
                 UpdateCells();
-                //UpdateMesh();
-                //ApplyMesh();
 
                 //Updates height of gameobjects, for debugging
                 if (fDebug)
@@ -109,7 +109,7 @@ public class WaterController : MonoBehaviour {
             timePassed += Time.deltaTime;
         }
 
-        //Update mesh every .5s
+        //Update mesh on a different timer
         if (meshTimer > 0.0f) {
             //UpdateMeshCollider();
             UpdateMesh();
@@ -131,6 +131,32 @@ public class WaterController : MonoBehaviour {
 
     public void RefreshWorld() {
         BuildWorldHeightArray();
+    }
+
+    //Use this instead of recalculating entire world for individual points
+    public void UpdateWorldHeightArray(Vector2i[] positions, int value) {
+        foreach (Vector2i vec2 in positions) {
+            int i = vec2.x;
+            int j = vec2.y;
+
+            int height = 0;
+            //Check if area has any colliders in, only compare with specified layers
+            var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, WaterCollisionLayers);
+            if (hitColliders.Length > 0) {
+                //If there is something here, don't update the array with the value, move on to next point
+                continue;
+            }
+            worldHeightArray[i, j] = height;
+            //Border of array should be classed as solid, make it the highest possible value
+            if (i == 0 || i == worldHeightArray.GetLength(0) || j == 0 || j == worldHeightArray.GetLength(1))
+                worldHeightArray[i, j] = int.MaxValue;
+
+            //If there is nothing here then update to given vale
+            if (worldHeightArray[i, j] == 0) {
+                worldHeightArray[i, j] = value;
+
+            }
+        }
     }
 
     //Code adapted from http://wiki.unity3d.com/index.php/ProceduralPrimitives
@@ -272,14 +298,6 @@ public class WaterController : MonoBehaviour {
     }
 
     void BuildWorldHeightArray() {
-        //Disable mesh collider
-        MeshCollider waterMesh = GetComponent<MeshCollider>();
-        waterMesh.enabled = false;
-
-        //Ignore floor layer 
-        int layerMask = 9 << 8;
-        layerMask = ~layerMask;
-
         for (int i = 0; i < worldHeightArray.GetLength(0); i++) {
             for (int j = 0; j < worldHeightArray.GetLength(1); j++) {
                 //Initialise all to being empty
@@ -287,11 +305,11 @@ public class WaterController : MonoBehaviour {
                 //Store height we're currently checking
                 int height = 0;
                 //Check if area has any colliders in
-                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, layerMask);
+                var hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, WaterCollisionLayers);
                 //While there is something in this spot, keep searching upwards until there is a space
                 while (hitColliders.Length > 0) {
                     height++;
-                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, layerMask);
+                    hitColliders = Physics.OverlapSphere(new Vector3(i, height, j), 0.51f, WaterCollisionLayers);
                 }
                 //Store the height we got to 
                 worldHeightArray[i, j] = height;
@@ -300,9 +318,6 @@ public class WaterController : MonoBehaviour {
                     worldHeightArray[i, j] = int.MaxValue;
             }
         }
-
-        //Renable mesh collider
-        waterMesh.enabled = true;
     }
 
     void UpdateCells() {

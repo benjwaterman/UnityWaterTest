@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 65000012906037102}
   - component: {fileID: 23000014212520036}
   - component: {fileID: 114000012955898460}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: DamPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -110,3 +110,4 @@ MonoBehaviour:
   ConstructionSpeed: 5
   testPrefab: {fileID: 1000011172963192, guid: e92eecec46069a94da73d809ecc3a7fa, type: 2}
   indiciesToCheck: []
+  buildingIndicies: []

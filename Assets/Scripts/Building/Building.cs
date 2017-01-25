@@ -11,6 +11,8 @@ public abstract class Building : MonoBehaviour {
     public float buildingStrength = 1;
     public int buildingCost = 100;
     public float ConstructionSpeed = 1;
+    //The amount the building decays per day
+    public float DecaySpeed = 0.1f;
 
     public GameObject testPrefab;
 
@@ -18,13 +20,21 @@ public abstract class Building : MonoBehaviour {
     protected bool bIsDemolishing;
     protected Vector3 position;
     protected Vector3 colliderExtents;
+    //Amount building has decayed
+    protected float decayAmount = 0;
 
     float halfHeight;
-    public List<Vector2> indiciesToCheck;
+    //List of indicies to check for water
+    public List<Vector2i> indiciesToCheck;
+    //Indicies that the building is on
+    public List<Vector2i> buildingIndicies;
+    Renderer thisRenderer;
+    int daysAlive = 0;
 
     void Start() {
         halfHeight = gameObject.GetComponent<Collider>().bounds.extents.y;
         colliderExtents = GetComponent<Collider>().bounds.extents;
+        thisRenderer = GetComponent<Renderer>();
     }
 
     protected virtual void Update() {
@@ -42,8 +52,8 @@ public abstract class Building : MonoBehaviour {
 
         //If building is being demolished
         if (bIsDemolishing) {
-            //Demolish 3x the speed of construction
-            transform.position = Vector3.MoveTowards(transform.position, position, ConstructionSpeed * (halfHeight * 2) * Time.deltaTime);
+            //Demolish
+            transform.position = Vector3.MoveTowards(transform.position, position, ConstructionSpeed * Time.deltaTime);
 
             //If reached position, destroy
             if (transform.position == position) {
@@ -52,8 +62,26 @@ public abstract class Building : MonoBehaviour {
             }
         }
 
-        //Check water next to this building
-        CheckAdjacentWater();
+        //If not constructing or demolishing
+        if (!bIsConstructing && !bIsDemolishing) {
+            //Check water next to this building
+            CheckAdjacentWater();
+        }
+    }
+
+   public void Decay() {
+        //If this is not the first day the building has been placed for
+        if (daysAlive > 0) {
+            //Increase decay amount
+            decayAmount = DecaySpeed * buildingStrength;
+            //Decrease building strength
+            if (decayAmount < buildingStrength) {
+                buildingStrength -= decayAmount;
+            }
+        }
+
+        //Increment days alive
+        daysAlive++;
     }
 
     public virtual void Construct() {
@@ -65,7 +93,9 @@ public abstract class Building : MonoBehaviour {
     }
 
     public virtual void FinishedConstruction() {
+        BuildingController.Current.PlacedBuildings.Add(this.gameObject);
         CalculateOuterPoints();
+        CalculateInnerPoints();
     }
 
     public virtual void Demolish() {
@@ -74,65 +104,99 @@ public abstract class Building : MonoBehaviour {
         bIsDemolishing = true;
         //Constructing is false
         bIsConstructing = false;
+        //Disable collider
+        GetComponent<Collider>().enabled = false;
+        //For each point set world height array to 0
+        WaterController.Current.UpdateWorldHeightArray(buildingIndicies.ToArray(), 0);
+        BuildingController.Current.PlacedBuildings.Remove(this.gameObject);
     }
 
     void CalculateOuterPoints() {
+        //Adding / subtracting one so we get the adjacent points to the building as well
+        CalculatePoints(1, out indiciesToCheck);
+    }
+
+    void CalculateInnerPoints() {
+        CalculatePoints(0, out buildingIndicies);
+    }
+
+    void CalculatePoints(int reach, out List<Vector2i> outList) {
+        List<Vector2i> list = new List<Vector2i>();
+        Vector3 adjustedExtents = colliderExtents;
+
         //If rotated, invert bounds
         if ((int)transform.localRotation.eulerAngles.y == 90 || (int)transform.localRotation.eulerAngles.y == 270) {
-            float temp = colliderExtents.x;
-            colliderExtents.x = colliderExtents.z;
-            colliderExtents.z = temp;
+            adjustedExtents.x = colliderExtents.z;
+            adjustedExtents.z = colliderExtents.x;
         }
 
         //Get length of each axis
-        int xSize = (int)(colliderExtents.x - -colliderExtents.x);
-        int zSize = (int)(colliderExtents.z - -colliderExtents.z);
+        int xSize = (int)(adjustedExtents.x - -adjustedExtents.x);
+        int zSize = (int)(adjustedExtents.z - -adjustedExtents.z);
 
-        //Get all points touching where water could be. Adding/subtracting one so we get the adjacent points to the building as well
-        for (int i = 0; i <= xSize / 2 + 1; i++) {
-            for (int j = 0; j <= zSize / 2 + 1; j++) {
-                indiciesToCheck.Add(new Vector2i(
-                    Mathf.RoundToInt((transform.position.x + colliderExtents.x % 1) + i),
-                    Mathf.RoundToInt((transform.position.z + colliderExtents.z % 1) + j)
+        //Get all points 
+        for (int i = 0; i <= xSize / 2 + reach; i++) {
+            for (int j = 0; j <= zSize / 2 + reach; j++) {
+                list.Add(new Vector2i(
+                    Mathf.RoundToInt((transform.position.x + adjustedExtents.x % 1) + i),
+                    Mathf.RoundToInt((transform.position.z + adjustedExtents.z % 1) + j)
                     ));
 
-                indiciesToCheck.Add(new Vector2i(
-                    Mathf.RoundToInt((transform.position.x - colliderExtents.x % 1) - i),
-                    Mathf.RoundToInt((transform.position.z - colliderExtents.z % 1) - j)
+                list.Add(new Vector2i(
+                    Mathf.RoundToInt((transform.position.x - adjustedExtents.x % 1) - i),
+                    Mathf.RoundToInt((transform.position.z - adjustedExtents.z % 1) - j)
                     ));
 
-                indiciesToCheck.Add(new Vector2i(
-                    Mathf.RoundToInt((transform.position.x - colliderExtents.x % 1) - i),
-                    Mathf.RoundToInt((transform.position.z + colliderExtents.z % 1) + j)
+                list.Add(new Vector2i(
+                    Mathf.RoundToInt((transform.position.x - adjustedExtents.x % 1) - i),
+                    Mathf.RoundToInt((transform.position.z + adjustedExtents.z % 1) + j)
                     ));
 
-                indiciesToCheck.Add(new Vector2i(
-                    Mathf.RoundToInt((transform.position.x + colliderExtents.x % 1) + i),
-                    Mathf.RoundToInt((transform.position.z - colliderExtents.z % 1) - j)
+                list.Add(new Vector2i(
+                    Mathf.RoundToInt((transform.position.x + adjustedExtents.x % 1) + i),
+                    Mathf.RoundToInt((transform.position.z - adjustedExtents.z % 1) - j)
                     ));
             }
         }
 
-        foreach (Vector2i vec2 in indiciesToCheck) {
-            Instantiate(testPrefab, new Vector3(vec2.x, 0, vec2.y), Quaternion.identity);
-        }
+        outList = list;
+        /*if (reach == 0) {
+            foreach (Vector2i vec2 in list) {
+                Instantiate(testPrefab, new Vector3(vec2.x, 0, vec2.y), Quaternion.identity);
+            }
+        }*/
     }
 
     //For comparing to water next to this building
     void CheckAdjacentWater() {
-        //CHECK WATER LEVELS HERE
+        float highestVolume = 0;
         foreach (Vector2i vec2 in indiciesToCheck) {
-            //If water is higher than than this building, destroy the building
+            float volume = 0;
             try {
-                if (WaterController.Current.waterCellArray[vec2.x, vec2.y].volume > buildingStrength) {
-                    Demolish();
-                }
+                volume = WaterController.Current.waterCellArray[vec2.x, vec2.y].volume;
             }
-            catch (System.Exception) { //BLOC KSPAWNING AT 1000 FIX
+            catch (System.Exception) {
                 Debug.Log(vec2.x + " " + vec2.y);
                 throw;
             }
+            
+            //Record highest volume
+            if (volume > highestVolume) {
+                highestVolume = volume;
+            }
 
+            //If water is higher than than this building, destroy the building
+            if (volume > buildingStrength) {
+                //If not already demolishing
+                if (!bIsDemolishing && !bIsConstructing) {
+                    Demolish();
+                    break;
+                }
+            }
         }
+
+        //Increase red depending on volume in relation to strength
+        Color color = thisRenderer.material.color;
+        thisRenderer.material.color = new Color(highestVolume / buildingStrength, color.g, color.b);
     }
 }

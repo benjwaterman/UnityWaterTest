@@ -1,16 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class BuildingController : MonoBehaviour {
 
     public static BuildingController Current;
 
+    //Layers that the building should collide with when placing it
+    public LayerMask BuildingCollisionLayers;
+    public LayerMask FloorLayerMask;
     public Material PlaceMaterial;
     public GameObject SandbagsPrefab;
     public GameObject DamPrefab;
     public GameObject DitchPrefab;
+    public GameObject DrainPrefab;
+    public GameObject ConcretePrefab;
     public bool bIsPlacing = false;
     public float RefundPercentage = 0.8f;
+    public List<GameObject> PlacedBuildings;
 
     bool bIsDemolishing = false;
     Color backgroundColour;
@@ -57,6 +64,14 @@ public class BuildingController : MonoBehaviour {
 
     public void PlaceDitch() {
         CreateBuilding(DitchPrefab);
+    }
+
+    public void PlaceDrain() {
+        CreateBuilding(DrainPrefab);
+    }
+
+    public void PlaceConcrete() {
+        CreateBuilding(ConcretePrefab);
     }
 
     public void DemolishBuilding() {

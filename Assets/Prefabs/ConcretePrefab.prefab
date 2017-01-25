@@ -9,46 +9,46 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1000012363974840}
+  m_RootGameObject: {fileID: 1146141742212724}
   m_IsPrefabParent: 1
---- !u!1 &1000012363974840
+--- !u!1 &1146141742212724
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4000011192618970}
-  - component: {fileID: 33000011477777408}
-  - component: {fileID: 65000013732591964}
-  - component: {fileID: 23000013863478584}
-  - component: {fileID: 114000013963532220}
+  - component: {fileID: 4347967031343994}
+  - component: {fileID: 33890514471879948}
+  - component: {fileID: 65947400211040344}
+  - component: {fileID: 23485576273858554}
+  - component: {fileID: 114285159967869604}
   m_Layer: 10
-  m_Name: SandbagsPrefab
+  m_Name: ConcretePrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4000011192618970
+--- !u!4 &4347967031343994
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012363974840}
+  m_GameObject: {fileID: 1146141742212724}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 33.13732, y: 0.51, z: 7.5224686}
-  m_LocalScale: {x: 1, y: 0.5, z: 1}
+  m_LocalPosition: {x: 39.171333, y: 9.122681, z: 31.165}
+  m_LocalScale: {x: 1, y: 1, z: 2}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &23000013863478584
+--- !u!23 &23485576273858554
 MeshRenderer:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012363974840}
+  m_GameObject: {fileID: 1146141742212724}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -74,40 +74,41 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingOrder: 0
---- !u!33 &33000011477777408
+--- !u!33 &33890514471879948
 MeshFilter:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012363974840}
+  m_GameObject: {fileID: 1146141742212724}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &65000013732591964
+--- !u!65 &65947400211040344
 BoxCollider:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012363974840}
+  m_GameObject: {fileID: 1146141742212724}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &114000013963532220
+--- !u!114 &114285159967869604
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012363974840}
+  m_GameObject: {fileID: 1146141742212724}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc85b1e1b075adc4a96b8b4def46fe4d, type: 3}
+  m_Script: {fileID: 11500000, guid: 1fb8713b8b35a4a4ebbafcd9fc3fe52c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildingName: Sandbags
-  buildingStrength: 0.5
-  buildingCost: 20
+  buildingName: Concrete
+  buildingStrength: 1
+  buildingCost: 100
   ConstructionSpeed: 5
-  testPrefab: {fileID: 1000011172963192, guid: e92eecec46069a94da73d809ecc3a7fa, type: 2}
+  DecaySpeed: 0.1
+  testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []

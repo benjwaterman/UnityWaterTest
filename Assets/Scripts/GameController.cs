@@ -130,6 +130,11 @@ public class GameController : MonoBehaviour {
         WaterController.Current.RefreshWorld();
         BuildingController.Current.TurnOffActiveModes();
 
+        //Update decay amounts
+        foreach (GameObject building in BuildingController.Current.PlacedBuildings) {
+            building.GetComponent<Building>().Decay();
+        }
+
         SetButtonInteractable(false);
     }
 
