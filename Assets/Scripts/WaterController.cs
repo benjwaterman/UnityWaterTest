@@ -196,7 +196,7 @@ public class WaterController : MonoBehaviour {
 
         waterMesh.RecalculateBounds();
         waterMesh.RecalculateNormals();
-        waterMesh.Optimize();
+        ;
     }
 
     void UpdateMeshCollider() {

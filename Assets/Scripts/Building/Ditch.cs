@@ -14,7 +14,6 @@ public class Ditch : Building {
     float currentDrainAmount;
     //Store list of where water could touch
     public List<Vector2i> waterIndices = new List<Vector2i>();
-    Vector3 colliderExtents;
     Vector3 originalBasePosition;
 
     //Special behviour in the form of draining water
@@ -56,7 +55,6 @@ public class Ditch : Building {
         //Set is constructing
         bIsConstructing = true;
 
-        colliderExtents = GetComponent<Collider>().bounds.extents;
         //Get all points touching where water could be, start left to right on x
         for (int i = (int)-colliderExtents.x; i <= colliderExtents.x; i++) {
             //Bottom to top for z
