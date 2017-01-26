@@ -370,7 +370,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 6d1b631f4ca1a0148b3874556d5a4320, type: 2}
+  - {fileID: 2100000, guid: 185c50d7a3d8beb4bbbca8dbea8d39bb, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -789,6 +789,7 @@ MonoBehaviour:
   buildingStrength: -1
   buildingCost: 100
   ConstructionSpeed: 5
+  DecaySpeed: 0.1
   testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []

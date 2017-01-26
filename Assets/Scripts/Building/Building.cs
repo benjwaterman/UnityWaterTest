@@ -13,6 +13,8 @@ public abstract class Building : MonoBehaviour {
     public float ConstructionSpeed = 1;
     //The amount the building decays per day
     public float DecaySpeed = 0.1f;
+    public bool bIsObjectiveBuilding;
+    public bool bIsAlive = true;
 
     public GameObject testPrefab;
 
@@ -35,6 +37,16 @@ public abstract class Building : MonoBehaviour {
         halfHeight = gameObject.GetComponent<Collider>().bounds.extents.y;
         colliderExtents = GetComponent<Collider>().bounds.extents;
         thisRenderer = GetComponent<Renderer>();
+
+        if (bIsObjectiveBuilding) {
+            //Add self to list of buildings that need to be protected
+            GameController.Current.AddObjective(this.gameObject);
+            //Calculate bounds
+            CalculateOuterPoints();
+            CalculateInnerPoints();
+            bIsConstructing = false;
+            bIsDemolishing = false;
+        }
     }
 
     protected virtual void Update() {
@@ -58,18 +70,21 @@ public abstract class Building : MonoBehaviour {
             //If reached position, destroy
             if (transform.position == position) {
                 bIsDemolishing = false;
-                Destroy(this.gameObject);
+                //Do not destroy objective buildings
+                if (!bIsObjectiveBuilding) {
+                    Destroy(this.gameObject);
+                }
             }
         }
 
         //If not constructing or demolishing
-        if (!bIsConstructing && !bIsDemolishing) {
+        if (bIsAlive && !bIsConstructing && !bIsDemolishing) {
             //Check water next to this building
             CheckAdjacentWater();
         }
     }
 
-   public void Decay() {
+    public void Decay() {
         //If this is not the first day the building has been placed for
         if (daysAlive > 0) {
             //Increase decay amount
@@ -85,11 +100,14 @@ public abstract class Building : MonoBehaviour {
     }
 
     public virtual void Construct() {
-        //Store position to move to
-        position = transform.position;
-        //Move object to be just under the surface of where it has been placed
-        transform.position = new Vector3(transform.position.x, transform.position.y - halfHeight * 2, transform.position.z); //halfHeight * 4
-        bIsConstructing = true;
+        //Only for defenses
+        if (!bIsObjectiveBuilding) {
+            //Store position to move to
+            position = transform.position;
+            //Move object to be just under the surface of where it has been placed
+            transform.position = new Vector3(transform.position.x, transform.position.y - halfHeight * 2, transform.position.z); //halfHeight * 4
+            bIsConstructing = true;
+        }
     }
 
     public virtual void FinishedConstruction() {
@@ -99,7 +117,17 @@ public abstract class Building : MonoBehaviour {
     }
 
     public virtual void Demolish() {
-        position = new Vector3(transform.position.x, transform.position.y - halfHeight * 2, transform.position.z);
+        bIsAlive = false;
+        if (bIsObjectiveBuilding) {
+            position = new Vector3(transform.position.x, transform.position.y - halfHeight * 0.5f, transform.position.z);
+            //Change material to demolished material
+            gameObject.GetComponent<Renderer>().material = GameController.Current.DemolishedBuildingMaterial;
+            //Set isAlive to false
+            GetComponent<Building>().bIsAlive = false;
+        }
+        else {
+            position = new Vector3(transform.position.x, transform.position.y - halfHeight * 2, transform.position.z);
+        }
         //Demolishing is true
         bIsDemolishing = true;
         //Constructing is false
@@ -108,7 +136,9 @@ public abstract class Building : MonoBehaviour {
         GetComponent<Collider>().enabled = false;
         //For each point set world height array to 0
         WaterController.Current.UpdateWorldHeightArray(buildingIndicies.ToArray(), 0);
-        BuildingController.Current.PlacedBuildings.Remove(this.gameObject);
+        if (!bIsObjectiveBuilding) {
+            BuildingController.Current.PlacedBuildings.Remove(this.gameObject);
+        }
     }
 
     void CalculateOuterPoints() {
@@ -160,7 +190,7 @@ public abstract class Building : MonoBehaviour {
         }
 
         outList = list;
-        /*if (reach == 0) {
+        /*if (reach == 1) {
             foreach (Vector2i vec2 in list) {
                 Instantiate(testPrefab, new Vector3(vec2.x, 0, vec2.y), Quaternion.identity);
             }
@@ -179,24 +209,35 @@ public abstract class Building : MonoBehaviour {
                 Debug.Log(vec2.x + " " + vec2.y);
                 throw;
             }
-            
-            //Record highest volume
-            if (volume > highestVolume) {
-                highestVolume = volume;
-            }
 
-            //If water is higher than than this building, destroy the building
-            if (volume > buildingStrength) {
-                //If not already demolishing
-                if (!bIsDemolishing && !bIsConstructing) {
+            //If is objective, any water destroys it
+            if (bIsObjectiveBuilding) {
+                if (volume > 0.015f) {
                     Demolish();
                     break;
                 }
+                continue;
+            }
+
+            else {
+                //Record highest volume
+                if (volume > highestVolume) {
+                    highestVolume = volume;
+                }
+
+                //If water is higher than than this building, destroy the building
+                if (volume > buildingStrength) {
+                    //If not already demolishing
+                    if (!bIsDemolishing && !bIsConstructing) {
+                        Demolish();
+                        break;
+                    }
+                }
+
+                //Increase red depending on volume in relation to strength
+                Color color = thisRenderer.material.color;
+                thisRenderer.material.color = new Color(highestVolume / buildingStrength, color.g, color.b);
             }
         }
-
-        //Increase red depending on volume in relation to strength
-        Color color = thisRenderer.material.color;
-        thisRenderer.material.color = new Color(highestVolume / buildingStrength, color.g, color.b);
     }
 }

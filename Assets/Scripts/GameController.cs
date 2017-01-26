@@ -148,9 +148,9 @@ public class GameController : MonoBehaviour {
     void UpdateObjectives() {
         List<GameObject> hasCollidedList = new List<GameObject>();
 
-        //Check for collisions
+        //Check building is still alive
         foreach (GameObject obj in ObjectivesList) {
-            if (obj.GetComponent<OnWaterTouch>().CheckForWaterCollision()) {
+            if (!obj.GetComponent<Building>().bIsAlive) {
                 //Add to has collided list
                 hasCollidedList.Add(obj);
             }
@@ -159,8 +159,6 @@ public class GameController : MonoBehaviour {
         foreach (GameObject obj in hasCollidedList) {
             //Remove from objectives list
             ObjectivesList.Remove(obj);
-            //Call demolish function
-            obj.GetComponent<OnWaterTouch>().DemolishSelf();
             //Decrement objectives still active
             objectivesStillActive--;
         }

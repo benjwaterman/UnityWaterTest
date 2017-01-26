@@ -21,6 +21,7 @@ public class BuildingController : MonoBehaviour {
 
     bool bIsDemolishing = false;
     Color backgroundColour;
+    private GameObject currentlySelectedPrefab;
 
     public BuildingController() {
         Current = this;
@@ -53,25 +54,34 @@ public class BuildingController : MonoBehaviour {
             }
         }
     }
+    
+    public void PlaceCurrentlySelected() {
+        CreateBuilding(currentlySelectedPrefab);
+    }
 
     public void PlaceSandbags() {
-        CreateBuilding(SandbagsPrefab);
+        currentlySelectedPrefab = SandbagsPrefab;
+        PlaceCurrentlySelected();
     }
 
     public void PlaceDam() {
-        CreateBuilding(DamPrefab);
+        currentlySelectedPrefab = DamPrefab;
+        PlaceCurrentlySelected();
     }
 
     public void PlaceDitch() {
-        CreateBuilding(DitchPrefab);
+        currentlySelectedPrefab = DitchPrefab;
+        PlaceCurrentlySelected();
     }
 
     public void PlaceDrain() {
-        CreateBuilding(DrainPrefab);
+        currentlySelectedPrefab = DrainPrefab;
+        PlaceCurrentlySelected();
     }
 
     public void PlaceConcrete() {
-        CreateBuilding(ConcretePrefab);
+        currentlySelectedPrefab = ConcretePrefab;
+        PlaceCurrentlySelected();
     }
 
     public void DemolishBuilding() {

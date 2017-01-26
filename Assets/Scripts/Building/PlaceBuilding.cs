@@ -78,12 +78,12 @@ public class PlaceBuilding : MonoBehaviour {
                     }
                 }
                 else {
-                    position.x = Mathf.Round(hit.point.x );
+                    position.x = Mathf.Round(hit.point.x);
                 }
 
                 position.y = hit.point.y + colliderExtents.y;
 
-                if(colliderExtents.z % 1 != 0) {
+                if (colliderExtents.z % 1 != 0) {
                     float tempY = Mathf.Round(hit.point.z * 2) / 2;
                     if (tempY % 1 != 0) {
                         position.z = tempY;
@@ -91,7 +91,7 @@ public class PlaceBuilding : MonoBehaviour {
                     else {
                         position.z = tempY + 0.5f;
                     }
-                } 
+                }
                 else {
                     position.z = Mathf.Round(hit.point.z);
                 }
@@ -120,7 +120,7 @@ public class PlaceBuilding : MonoBehaviour {
         }
 
         //When right mouse button or esc is pressed
-        if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape)) {
+        if (/*Input.GetMouseButtonDown(1) ||*/ Input.GetKeyDown(KeyCode.Escape)) {
             CancelPlace();
         }
 
@@ -155,15 +155,7 @@ public class PlaceBuilding : MonoBehaviour {
                 //If shift is held
                 if (Input.GetKey(KeyCode.LeftShift)) {
                     //Create another building to place
-                    if (gameObject.GetComponent<Sandbags>()) {
-                        BuildingController.Current.PlaceSandbags();
-                    }
-                    else if(gameObject.GetComponent<Dam>()) {
-                        BuildingController.Current.PlaceDam();
-                    }
-                    else if (gameObject.GetComponent<Ditch>()) {
-                        BuildingController.Current.PlaceDitch();
-                    }
+                    BuildingController.Current.PlaceCurrentlySelected();
                 }
                 //Destroy this component 
                 Destroy(this);
