@@ -106,9 +106,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingName: Concrete
   buildingStrength: 1
-  buildingCost: 100
+  buildingCost: 50
+  buildingDescription: 'A slab of concrete. BREAKBREAKStrength: 1'
   ConstructionSpeed: 5
   DecaySpeed: 0.1
+  bIsObjectiveBuilding: 0
+  bIsDrain: 0
+  bIsAlive: 1
   testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []

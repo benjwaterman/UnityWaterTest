@@ -38,6 +38,7 @@ public class Ditch : Building {
                 }
             }
 
+            //Move water base up depending on how full it is
             if (WaterBase.transform.position.y < transform.position.y + 0.4) {
                 WaterBase.transform.position = Vector3.MoveTowards(WaterBase.transform.position, new Vector3(originalBasePosition.x, originalBasePosition.y + currentDrainAmount / WaterDrainAmount, originalBasePosition.z), 10 * Time.deltaTime);
             }

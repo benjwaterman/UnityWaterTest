@@ -452,8 +452,10 @@ MonoBehaviour:
   buildingName: Ditch
   buildingStrength: 100
   buildingCost: 10
+  buildingDescription: 'A simple ditch that will collect water. BREAKBREAKAmount of
+    water: 4'
   ConstructionSpeed: 5
-  DecaySpeed: 0.1
+  DecaySpeed: 0
   bIsObjectiveBuilding: 0
   bIsDrain: 1
   bIsAlive: 1

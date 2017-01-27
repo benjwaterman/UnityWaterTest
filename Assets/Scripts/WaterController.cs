@@ -33,8 +33,11 @@ public class WaterController : MonoBehaviour {
     //Used to store the temporary list
     List<Vector2i> tempList = new List<Vector2i>();
 
+    //Minimum difference between two cells before they water will move
     float minVolume = 0.005f;
+    //The rate at which the water flows
     float baseFlowRate = 0.45f; //0.25
+    float flowRate = 15;
     float timePassed = 0;
     float meshTimer = 0;
 
@@ -66,7 +69,7 @@ public class WaterController : MonoBehaviour {
         //Fill river
         for (int i = 0; i < 22; i++) {
             for (int j = 0; j < 101; j++) {
-                UpdateCellVolume(79 + i, j, 2);
+                UpdateCellVolume(79 + i, j, 4);
             }
         }
 
@@ -85,18 +88,20 @@ public class WaterController : MonoBehaviour {
     }
 
     void Update() {
+        baseFlowRate = flowRate * Time.deltaTime;
+        
         //if(activeCellIndexListA.Count > 0)
         //If not paused update time passed
         if (!bIsPaused) {
             //Water runs at 60 fps
-            if (timePassed > 0.016) {
+            if (timePassed > 0.0) {
 
                 //Flow coming into the river
-                for (int i = 0; i < 22; i++) {
-                    UpdateCellVolume(79 + i, 100, 2);
-                    UpdateCellVolume(79 + i, 99, 2);
-                    UpdateCellVolume(79 + i, 98, 2);
-                }
+                //for (int i = 0; i < 22; i++) {
+                //    UpdateCellVolume(79 + i, 100, 4);
+                //    UpdateCellVolume(79 + i, 99, 4);
+                //    UpdateCellVolume(79 + i, 98, 4);
+                //}
 
                 UpdateCells();
 

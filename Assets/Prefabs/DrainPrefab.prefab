@@ -54,7 +54,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4000010055162984}
   - component: {fileID: 33000012801675072}
-  - component: {fileID: 64000010973893100}
   - component: {fileID: 23000011578984892}
   m_Layer: 11
   m_Name: Plane (2)
@@ -89,7 +88,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4000013423347158}
   - component: {fileID: 33000013943019830}
-  - component: {fileID: 64000010245031842}
   - component: {fileID: 23000013098754880}
   m_Layer: 11
   m_Name: Grate
@@ -143,7 +141,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4000011263004440}
   - component: {fileID: 33000012499735790}
-  - component: {fileID: 64000011948436178}
   - component: {fileID: 23000011391096330}
   m_Layer: 11
   m_Name: Plane (1)
@@ -161,7 +158,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4000012881620412}
   - component: {fileID: 33000012534034304}
-  - component: {fileID: 64000010347974576}
   - component: {fileID: 23000014254001696}
   m_Layer: 11
   m_Name: Plane (3)
@@ -298,7 +294,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000013578176824}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 42.224, y: 9.343872, z: 31.973}
+  m_LocalPosition: {x: 72.37767, y: 35.353855, z: 19.972574}
   m_LocalScale: {x: 2, y: 1, z: 2}
   m_Children:
   - {fileID: 4000013061663028}
@@ -706,62 +702,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000012945205764}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!64 &64000010245031842
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012945205764}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Convex: 0
-  m_InflateMesh: 0
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!64 &64000010347974576
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000013699191326}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Convex: 0
-  m_InflateMesh: 0
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!64 &64000010973893100
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000012046830124}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Convex: 0
-  m_InflateMesh: 0
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!64 &64000011948436178
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000013599368414}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Convex: 0
-  m_InflateMesh: 0
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!65 &65000012435664564
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -788,11 +728,16 @@ MonoBehaviour:
   buildingName: Drain
   buildingStrength: 100
   buildingCost: 100
+  buildingDescription: 'A drain that constantly drains a small amount of water. BREAKBREAKDrain
+    amount: 0.1/s'
   ConstructionSpeed: 5
-  DecaySpeed: 0.1
+  DecaySpeed: 0
   bIsObjectiveBuilding: 0
   bIsDrain: 1
   bIsAlive: 1
   testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []
+  WaterDrainRate: 0.1
+  WaterBase: {fileID: 1000013392771268}
+  SinkDepth: -0.48

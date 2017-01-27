@@ -8,7 +8,7 @@ public class GameController : MonoBehaviour {
 
     [Header("Debug")]
     public bool bIsPaused = false;
-    
+
     [Header("Game Values")]
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
@@ -23,6 +23,7 @@ public class GameController : MonoBehaviour {
     public Text ObjectivesText;
     public GameObject LoadingPanel;
     public GameObject CursorText;
+    public GameObject ContextPanel;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
     public GameObject[] BarriersToDestory;
@@ -53,6 +54,11 @@ public class GameController : MonoBehaviour {
         Current = this;
     }
 
+    void Awake() {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = -1;
+    }
+
     void Start() {
         //Make buttons not interactable
         SetButtonInteractable(false);
@@ -64,16 +70,18 @@ public class GameController : MonoBehaviour {
         LoadingPanel.SetActive(true);
         //Hide cursor text
         CursorText.GetComponent<CanvasGroup>().alpha = 0;
+        //Hide context panel
+        HideContextPanel();
     }
 
     void Update() {
         //While day is = 0, and timepassed is less than 2s, game is loading
-        if(dayCounter == 0 && timePassed < LoadingTime) {
+        if (dayCounter == 0 && timePassed < LoadingTime) {
             //Increase loading percent 
             LoadingPanel.transform.GetChild(1).GetComponent<Text>().text = Mathf.Round(timePassed / LoadingTime * 100).ToString() + "%";
         }
         //Else if panel is active, disable it, as no longer loading
-        else if(LoadingPanel.activeSelf) {
+        else if (LoadingPanel.activeSelf) {
             LoadingPanel.SetActive(false);
             //Start new day
             dayCounter++;
@@ -117,7 +125,7 @@ public class GameController : MonoBehaviour {
             WaterController.Current.RefreshWorld();
         }
 
-        if(bIsDisplayingCursorText) {
+        if (bIsDisplayingCursorText) {
             //Move towards upper right
             CursorText.transform.position = Vector2.MoveTowards(CursorText.transform.position, cursorTextPosition + new Vector2(200, 200), Time.deltaTime * 50);
             //Start fading after time passed is greater than timer
@@ -127,7 +135,7 @@ public class GameController : MonoBehaviour {
                 if (CursorText.GetComponent<CanvasGroup>().alpha <= 0) {
                     cursorTimePassed = 0;
                     bIsDisplayingCursorText = false;
-                    
+
                 }
             }
             cursorTimePassed += Time.deltaTime;
@@ -140,7 +148,7 @@ public class GameController : MonoBehaviour {
 
         //Display change to player
         //If positive amount
-        if(amount >= 0) {
+        if (amount >= 0) {
             creditChange = "+ §";
         }
         //If negative amount
@@ -229,5 +237,21 @@ public class GameController : MonoBehaviour {
         CursorText.GetComponent<CanvasGroup>().alpha = 1;
         //MOVE TO CURSOR POSITION
         cursorTextPosition = CursorText.transform.position = Input.mousePosition;
+    }
+
+    public void DisplayContextPanel(string title, string description, int cost) {
+        //ContextPanel.transform.position = Input.mousePosition;
+        //Get title
+        ContextPanel.transform.GetChild(0).transform.GetChild(0).GetComponent<Text>().text = title;
+        //Get cost
+        ContextPanel.transform.GetChild(0).transform.GetChild(1).GetComponent<Text>().text = "§" + cost;
+        //Get description
+        ContextPanel.transform.GetChild(1).GetComponent<Text>().text = description;
+        //Show it
+        ContextPanel.SetActive(true);
+    }
+
+    public void HideContextPanel() {
+        ContextPanel.SetActive(false);
     }
 }

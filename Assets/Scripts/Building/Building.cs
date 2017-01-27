@@ -3,19 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using Codes.Linus.IntVectors;
 
-public enum BuildingType { Sandbags, Wall };
+public enum BuildingType { Sandbags, Concrete, Dam, Ditch, Drain };
 
 public abstract class Building : MonoBehaviour {
 
     public string buildingName;
     public float buildingStrength = 1;
     public int buildingCost = 100;
+    public string buildingDescription;
     public float ConstructionSpeed = 1;
     //The amount the building decays per day
     public float DecaySpeed = 0.1f;
     public bool bIsObjectiveBuilding;
     public bool bIsDrain;
     public bool bIsAlive = true;
+    //If building is placed when the level loads
+    public bool bIsPrePlaced = false;
 
     public GameObject testPrefab;
 
@@ -47,6 +50,11 @@ public abstract class Building : MonoBehaviour {
             CalculateInnerPoints();
             bIsConstructing = false;
             bIsDemolishing = false;
+        }
+
+        //If pre placed, construct it
+        if(bIsPrePlaced) {
+            Construct();
         }
     }
 
@@ -142,7 +150,7 @@ public abstract class Building : MonoBehaviour {
         //Constructing is false
         bIsConstructing = false;
         //Disable collider
-        GetComponent<Collider>().enabled = false;
+        GetComponent<Collider>().enabled = false; //NOT WORKING FOR PRE PLACED BUILDINGS, WATER DOESNT MOVE WHERE THEY WERE
         //For each point set world height array to 0
         WaterController.Current.UpdateWorldHeightArray(buildingIndicies.ToArray(), 0);
         if (!bIsObjectiveBuilding) {
