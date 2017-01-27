@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class PlaceBuilding : MonoBehaviour {
     //What is classed as floor
@@ -56,10 +57,15 @@ public class PlaceBuilding : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        //If we're over UI don't do anything
+        if(EventSystem.current.IsPointerOverGameObject()) {
+            return;
+        }
         //Move transform with mouse, as long as mouse raycast is hitting something
         RaycastHit hit;
-        //Make position same as where mouse is, as long as it is over terrain
+        //Make position same as where mouse is, as long as it is over floor
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        //Mask to only raycast against floor layer
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, floorLayerMask)) {
             if (hit.transform != null) {
                 //Lock to grid
@@ -137,11 +143,11 @@ public class PlaceBuilding : MonoBehaviour {
 
     void Place() {
         //If player has enough credits
-        if (GameController.Current.currentCredits >= thisBuilding.buildingCost) {
+        if (GameController.Current.GetCredits() >= thisBuilding.buildingCost) {
             //If can place
             if (bCanPlace) {
                 //Update credits
-                GameController.Current.currentCredits -= thisBuilding.buildingCost;
+                GameController.Current.UpdateCredits(-thisBuilding.buildingCost);
                 //Set the colour back to its original
                 SetColour(Color.white);
                 //Re enable the collider
@@ -152,6 +158,8 @@ public class PlaceBuilding : MonoBehaviour {
                 }
                 //Tell the building it has been placed
                 thisBuilding.Construct();
+                //Tell the controller it has been placed
+                BuildingController.Current.HasPlaced();
                 //If shift is held
                 if (Input.GetKey(KeyCode.LeftShift)) {
                     //Create another building to place
@@ -163,11 +171,13 @@ public class PlaceBuilding : MonoBehaviour {
             //Not a suitable location
             else {
                 Debug.Log("Can't place here");
+                GameController.Current.DisplayCursorText("Can't place here!", 1);
             }
         }
         //Not enough credits
         else {
             Debug.Log("Not enough credits");
+            GameController.Current.DisplayCursorText("Not enough credits!", 1);
         }
     }
 

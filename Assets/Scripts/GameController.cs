@@ -8,7 +8,7 @@ public class GameController : MonoBehaviour {
 
     [Header("Debug")]
     public bool bIsPaused = false;
-    public int currentCredits;
+    
     [Header("Game Values")]
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
@@ -22,6 +22,7 @@ public class GameController : MonoBehaviour {
     public Image BackgroundImage;
     public Text ObjectivesText;
     public GameObject LoadingPanel;
+    public GameObject CursorText;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
     public GameObject[] BarriersToDestory;
@@ -29,12 +30,24 @@ public class GameController : MonoBehaviour {
     //Store a list of the objective buildings that need to be protected from water
     List<GameObject> ObjectivesList = new List<GameObject>();
 
+    //Current balance
+    int currentCredits;
     float timePassed = 0;
     int dayCounter = 0;
     //Number of objective in total
     int objectivesCount;
     //Number of objectives yet to be destroyed
     int objectivesStillActive;
+    //How long to display cursor text for
+    float cursorTextDisplayTimer;
+    //How long to fade cursor text
+    float cursorTextFadeSpeed = 1;
+    //Are we displaying cursor text
+    bool bIsDisplayingCursorText = false;
+    //Keep track of time passed for cursor text
+    float cursorTimePassed;
+    //Cursor position when text was created
+    Vector2 cursorTextPosition;
 
     public GameController() {
         Current = this;
@@ -49,6 +62,8 @@ public class GameController : MonoBehaviour {
         ObjectivesList.Clear();
         //Enable panel
         LoadingPanel.SetActive(true);
+        //Hide cursor text
+        CursorText.GetComponent<CanvasGroup>().alpha = 0;
     }
 
     void Update() {
@@ -86,7 +101,7 @@ public class GameController : MonoBehaviour {
         }
 
         ////////////////Should put in a function
-        CreditsText.text = currentCredits + " Cr";
+        CreditsText.text = "§" + currentCredits;
         DayText.text = "Day " + dayCounter;
         ObjectivesText.text = objectivesStillActive + "/" + objectivesCount + " buildings standing";
 
@@ -101,6 +116,45 @@ public class GameController : MonoBehaviour {
             Debug.Log("Refreshing world height array");
             WaterController.Current.RefreshWorld();
         }
+
+        if(bIsDisplayingCursorText) {
+            //Move towards upper right
+            CursorText.transform.position = Vector2.MoveTowards(CursorText.transform.position, cursorTextPosition + new Vector2(200, 200), Time.deltaTime * 50);
+            //Start fading after time passed is greater than timer
+            if (cursorTimePassed > cursorTextDisplayTimer) {
+                CursorText.GetComponent<CanvasGroup>().alpha -= Time.deltaTime * cursorTextFadeSpeed;
+                //If text is invisible
+                if (CursorText.GetComponent<CanvasGroup>().alpha <= 0) {
+                    cursorTimePassed = 0;
+                    bIsDisplayingCursorText = false;
+                    
+                }
+            }
+            cursorTimePassed += Time.deltaTime;
+        }
+    }
+
+    public void UpdateCredits(int amount) {
+        currentCredits += amount;
+        string creditChange;
+
+        //Display change to player
+        //If positive amount
+        if(amount >= 0) {
+            creditChange = "+ §";
+        }
+        //If negative amount
+        else {
+            creditChange = "- §";
+        }
+
+        creditChange += Mathf.Abs(amount);
+
+        DisplayCursorText(creditChange, 0.5f);
+    }
+
+    public int GetCredits() {
+        return currentCredits;
     }
 
     public void AddObjective(GameObject objective) {
@@ -165,5 +219,15 @@ public class GameController : MonoBehaviour {
 
         //Clear the list
         hasCollidedList.Clear();
+    }
+
+    public void DisplayCursorText(string text, float length) {
+        CursorText.GetComponent<Text>().text = text;
+        bIsDisplayingCursorText = true;
+        cursorTextDisplayTimer = length;
+        cursorTimePassed = 0;
+        CursorText.GetComponent<CanvasGroup>().alpha = 1;
+        //MOVE TO CURSOR POSITION
+        cursorTextPosition = CursorText.transform.position = Input.mousePosition;
     }
 }

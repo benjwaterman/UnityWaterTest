@@ -12,8 +12,6 @@ public class Ditch : Building {
     public float SinkDepth = -0.446f;
 
     float currentDrainAmount;
-    //Store list of where water could touch
-    public List<Vector2i> waterIndices = new List<Vector2i>();
     Vector3 originalBasePosition;
 
     //Special behviour in the form of draining water
@@ -25,7 +23,7 @@ public class Ditch : Building {
             //If has not filled up
             if (currentDrainAmount < WaterDrainAmount) {
                 //For every index, take away the volume from cell
-                foreach (Vector2i vec2 in waterIndices) {
+                foreach (Vector2i vec2 in buildingIndicies) {
                     try {
                         //Keep track of water drained
                         currentDrainAmount += WaterController.Current.waterCellArray[vec2.x, vec2.y].volume;
@@ -54,22 +52,10 @@ public class Ditch : Building {
         position.y = SinkDepth;
         //Set is constructing
         bIsConstructing = true;
-
-        //Get all points touching where water could be, start left to right on x
-        for (int i = (int)-colliderExtents.x; i <= colliderExtents.x; i++) {
-            //Bottom to top for z
-            for (int j = (int)-colliderExtents.z; j <= colliderExtents.z; j++) {
-                waterIndices.Add(new Vector2i(
-                    //X
-                    Mathf.RoundToInt(transform.position.x + colliderExtents.x * i),
-                    //Z
-                    Mathf.RoundToInt(transform.position.z + colliderExtents.z * j)
-                    ));
-            }
-        }
     }
 
     public override void FinishedConstruction() {
+        base.FinishedConstruction();
         originalBasePosition = WaterBase.transform.position;
     }
 }

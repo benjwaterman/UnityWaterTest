@@ -786,10 +786,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingName: Drain
-  buildingStrength: -1
+  buildingStrength: 100
   buildingCost: 100
   ConstructionSpeed: 5
   DecaySpeed: 0.1
+  bIsObjectiveBuilding: 0
+  bIsDrain: 1
+  bIsAlive: 1
   testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []

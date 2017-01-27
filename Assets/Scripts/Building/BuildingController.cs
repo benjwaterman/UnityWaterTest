@@ -21,7 +21,10 @@ public class BuildingController : MonoBehaviour {
 
     bool bIsDemolishing = false;
     Color backgroundColour;
-    private GameObject currentlySelectedPrefab;
+    //The prefab od the object we're placing, eg sandbags etc
+    GameObject currentlySelectedPrefab;
+    //A reference to the actual object we're placing
+    GameObject currentlySelectedObject;
 
     public BuildingController() {
         Current = this;
@@ -40,21 +43,23 @@ public class BuildingController : MonoBehaviour {
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity)) {
-                    //If gameobject has building component
+                    //If gameobject has building component and is not an objective
                     if (hit.transform.gameObject.GetComponent<Building>()) {
-                        //Remove building
-                        RemoveBuilding(hit.transform.gameObject);
+                        if (!hit.transform.gameObject.GetComponent<ObjectiveBuilding>()) {
+                            //Remove building
+                            RemoveBuilding(hit.transform.gameObject);
+                        }
                     }
                 }
             }
 
             //If right mouse click or escape
-            if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape)) {
+            if (/*Input.GetMouseButtonDown(1) ||*/ Input.GetKeyDown(KeyCode.Escape)) {
                 TurnOffActiveModes();
             }
         }
     }
-    
+
     public void PlaceCurrentlySelected() {
         CreateBuilding(currentlySelectedPrefab);
     }
@@ -89,6 +94,9 @@ public class BuildingController : MonoBehaviour {
         bIsDemolishing = !bIsDemolishing;
         //If demolishing, change bg colour
         if (bIsDemolishing) {
+            //Get rid of anything being placed
+            TurnOffActiveModes();
+            bIsDemolishing = true;
             GameController.Current.BackgroundImage.color = new Color(1, 0, 0, 0.5f);
         }
         //Else change it back to original
@@ -103,6 +111,10 @@ public class BuildingController : MonoBehaviour {
         GameController.Current.BackgroundImage.color = backgroundColour;
 
         bIsPlacing = false;
+        //Destroy whatever is selected, if something is selected
+        if (currentlySelectedObject != null) {
+            Destroy(currentlySelectedObject);
+        }
     }
 
     void CreateBuilding(GameObject buildingPrefab) {
@@ -113,6 +125,7 @@ public class BuildingController : MonoBehaviour {
             //Instantiate off screen
             GameObject newBuilding = (GameObject)Instantiate(buildingPrefab, new Vector3(1000, 1000, 1000), Quaternion.identity);
             newBuilding.AddComponent<PlaceBuilding>();
+            currentlySelectedObject = newBuilding;
         }
         else {
             Debug.Log("Already placing a building!");
@@ -123,9 +136,13 @@ public class BuildingController : MonoBehaviour {
         //If not placing
         if (!bIsPlacing) {
             //Refund some of the value, rounded to nearest int
-            GameController.Current.currentCredits += Mathf.RoundToInt(buildingObject.GetComponent<Building>().buildingCost * RefundPercentage);
+            GameController.Current.UpdateCredits(Mathf.RoundToInt(buildingObject.GetComponent<Building>().buildingCost * RefundPercentage));
             //Destory object
             buildingObject.GetComponent<Building>().Demolish();
         }
+    }
+
+    public void HasPlaced() {
+        currentlySelectedObject = null;
     }
 }

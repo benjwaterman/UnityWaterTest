@@ -450,14 +450,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingName: Ditch
-  buildingStrength: -1
+  buildingStrength: 100
   buildingCost: 10
   ConstructionSpeed: 5
   DecaySpeed: 0.1
+  bIsObjectiveBuilding: 0
+  bIsDrain: 1
+  bIsAlive: 1
   testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []
   WaterDrainAmount: 4
   WaterBase: {fileID: 1000011414016852}
   SinkDepth: -0.48
-  waterIndices: []

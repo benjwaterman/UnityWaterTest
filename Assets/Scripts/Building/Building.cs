@@ -14,6 +14,7 @@ public abstract class Building : MonoBehaviour {
     //The amount the building decays per day
     public float DecaySpeed = 0.1f;
     public bool bIsObjectiveBuilding;
+    public bool bIsDrain;
     public bool bIsAlive = true;
 
     public GameObject testPrefab;
@@ -79,12 +80,20 @@ public abstract class Building : MonoBehaviour {
 
         //If not constructing or demolishing
         if (bIsAlive && !bIsConstructing && !bIsDemolishing) {
-            //Check water next to this building
-            CheckAdjacentWater();
+            //If not a drain
+            if (!bIsDrain) {
+                //Check water next to this building
+                CheckAdjacentWater();
+            }
         }
     }
 
     public void Decay() {
+        //If is a drain, don't do anything
+        if(bIsDrain) {
+            return;
+        }
+
         //If this is not the first day the building has been placed for
         if (daysAlive > 0) {
             //Increase decay amount
