@@ -150,7 +150,7 @@ public abstract class Building : MonoBehaviour {
         //Constructing is false
         bIsConstructing = false;
         //Disable collider
-        GetComponent<Collider>().enabled = false; //NOT WORKING FOR PRE PLACED BUILDINGS, WATER DOESNT MOVE WHERE THEY WERE
+        GetComponent<Collider>().enabled = false;
         //For each point set world height array to 0
         WaterController.Current.UpdateWorldHeightArray(buildingIndicies.ToArray(), 0);
         if (!bIsObjectiveBuilding) {
@@ -171,10 +171,12 @@ public abstract class Building : MonoBehaviour {
         List<Vector2i> list = new List<Vector2i>();
         Vector3 adjustedExtents = colliderExtents;
 
-        //If rotated, invert bounds
-        if ((int)transform.localRotation.eulerAngles.y == 90 || (int)transform.localRotation.eulerAngles.y == 270) {
-            adjustedExtents.x = colliderExtents.z;
-            adjustedExtents.z = colliderExtents.x;
+        if (!bIsPrePlaced) {
+            //If rotated, invert bounds
+            if ((int)transform.localRotation.eulerAngles.y == 90 || (int)transform.localRotation.eulerAngles.y == 270) {
+                adjustedExtents.x = colliderExtents.z;
+                adjustedExtents.z = colliderExtents.x;
+            }
         }
 
         //Get length of each axis
@@ -207,7 +209,10 @@ public abstract class Building : MonoBehaviour {
         }
 
         outList = list;
-        /*if (reach == 1) {
+
+        //Debugging to show points
+        /*
+        if (reach == 0) {
             foreach (Vector2i vec2 in list) {
                 Instantiate(testPrefab, new Vector3(vec2.x, 0, vec2.y), Quaternion.identity);
             }

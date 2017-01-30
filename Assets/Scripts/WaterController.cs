@@ -89,29 +89,26 @@ public class WaterController : MonoBehaviour {
 
     void Update() {
         baseFlowRate = flowRate * Time.deltaTime;
-        
-        //if(activeCellIndexListA.Count > 0)
+
         //If not paused update time passed
         if (!bIsPaused) {
-            //Water runs at 60 fps
-            if (timePassed > 0.0) {
 
-                //Flow coming into the river
-                //for (int i = 0; i < 22; i++) {
-                //    UpdateCellVolume(79 + i, 100, 4);
-                //    UpdateCellVolume(79 + i, 99, 4);
-                //    UpdateCellVolume(79 + i, 98, 4);
-                //}
+            //Flow coming into the river
+            //for (int i = 0; i < 22; i++) {
+            //    UpdateCellVolume(79 + i, 100, 4);
+            //    UpdateCellVolume(79 + i, 99, 4);
+            //    UpdateCellVolume(79 + i, 98, 4);
+            //}
 
+            //Number of times to run sim per frame
+            for (int pass = 0; pass < 2; pass++) {
                 UpdateCells();
-
-                //Updates height of gameobjects, for debugging
-                if (fDebug)
-                    dbUpdateGameObjects();
-
-                timePassed = 0;
             }
-            timePassed += Time.deltaTime;
+
+            //Updates height of gameobjects, for debugging
+            if (fDebug)
+                dbUpdateGameObjects();
+
         }
 
         //Update mesh on a different timer

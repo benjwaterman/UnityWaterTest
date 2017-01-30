@@ -113,6 +113,7 @@ MonoBehaviour:
   bIsObjectiveBuilding: 0
   bIsDrain: 0
   bIsAlive: 1
-  testPrefab: {fileID: 0}
+  bIsPrePlaced: 0
+  testPrefab: {fileID: 1000011172963192, guid: e92eecec46069a94da73d809ecc3a7fa, type: 2}
   indiciesToCheck: []
   buildingIndicies: []
