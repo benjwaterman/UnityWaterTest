@@ -101,7 +101,7 @@ public class WaterController : MonoBehaviour {
             //}
 
             //Number of times to run sim per frame
-            for (int pass = 0; pass < 2; pass++) {
+            for (int pass = 0; pass < 1; pass++) {
                 UpdateCells();
             }
 

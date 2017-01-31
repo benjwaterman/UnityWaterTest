@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour {
     public bool bIsPaused = false;
 
     [Header("Game Values")]
+    public int NumberOfDays = 7;
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
     public int LoadingTime = 2;
@@ -24,6 +25,7 @@ public class GameController : MonoBehaviour {
     public GameObject LoadingPanel;
     public GameObject CursorText;
     public GameObject ContextPanel;
+    public GameObject SliderMarker;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
     public GameObject[] BarriersToDestory;
@@ -72,6 +74,17 @@ public class GameController : MonoBehaviour {
         CursorText.GetComponent<CanvasGroup>().alpha = 0;
         //Hide context panel
         HideContextPanel();
+        //Set day slider max value to number of days
+        DaySlider.maxValue = NumberOfDays;
+
+        //Create the markers on the slider signifying each day
+        float width = DaySlider.GetComponent<RectTransform>().rect.width;
+        float widthIncrement = width / NumberOfDays;
+        Transform mainPanel = GameObject.Find("MainPanel").transform;
+        for (int i = 0; i <= NumberOfDays; i++) {
+            GameObject newUI = (GameObject)Instantiate(SliderMarker, mainPanel);
+            newUI.transform.position = DaySlider.transform.position - new Vector3(width / 2, 0) + new Vector3(widthIncrement * i, 10);
+        }
     }
 
     void Update() {
@@ -93,7 +106,7 @@ public class GameController : MonoBehaviour {
         //If game is not paused
         if (!bIsPaused) {
             //Update slider to visualise time passing
-            DaySlider.value = timePassed / DayLength;
+            DaySlider.value = (dayCounter - 1) + timePassed / DayLength;
 
             if (timePassed > DayLength) {
                 //End of day, pause game
@@ -103,7 +116,7 @@ public class GameController : MonoBehaviour {
                 //Increase day counter
                 dayCounter++;
                 //Reset slider
-                DaySlider.value = 0;
+                //DaySlider.value = 0;
             }
             timePassed += Time.deltaTime;
         }
