@@ -45,6 +45,7 @@ public class GameController : MonoBehaviour {
     public GameObject SliderMarker;
     public Text TaskText;
     public GameObject GameOverPanel;
+    public GameObject GameWinPanel;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
     public GameObject[] BarriersToDestory;
@@ -103,6 +104,9 @@ public class GameController : MonoBehaviour {
 
         //Set task text
         TaskText.text = "Protect at least <b>" + BuildingsToProtect + "</b> buildings";
+
+        //Update UI
+        UpdateCredits(0);
     }
 
     void Update() {
@@ -114,6 +118,12 @@ public class GameController : MonoBehaviour {
         //Else if panel is active, disable it, as no longer loading
         else if (LoadingPanel.activeSelf) {
             StartFirstDay();
+        }
+
+        //Has made it to the end of the required day
+        if(dayCounter == NumberOfDays + 1) {
+            //Level has been beat
+            GameWin();
         }
 
         //If game is not paused
@@ -230,7 +240,6 @@ public class GameController : MonoBehaviour {
         WaterController.Current.Pause();
 
         SetButtonInteractable(true);
-        //UpdateObjectives();
     }
 
     public void ResumeGame() {
@@ -312,7 +321,18 @@ public class GameController : MonoBehaviour {
 
     //When level is won
     void GameWin() {
+        //Pause game
+        PauseGame();
+        //Remove ability to play game
+        ResumeButton.interactable = false;
+        //Enable game win screen
+        GameWinPanel.SetActive(true);
+        //Disable main UI
+        InGameUICanvas.enabled = false;
+    }
 
+    public void NextLevel() {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
     public void DisplayCursorText(string text, float length) {
