@@ -141,6 +141,8 @@ public abstract class Building : MonoBehaviour {
             gameObject.GetComponent<Renderer>().material = GameController.Current.DemolishedBuildingMaterial;
             //Set isAlive to false
             GetComponent<Building>().bIsAlive = false;
+
+            GameController.Current.UpdateObjectives();
         }
         else {
             position = new Vector3(transform.position.x, transform.position.y - halfHeight * 2, transform.position.z);

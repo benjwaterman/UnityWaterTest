@@ -7,12 +7,17 @@ using Codes.Linus.IntVectors; //Int vectors from https://github.com/LinusVanElsw
 public class WaterController : MonoBehaviour {
     //Singleton reference
     public static WaterController Current;
-    //For debugging water
-    public const bool fDebug = false;
 
     public WaterController() {
         Current = this;
     }
+
+    void Awake() {
+        Current = this;
+    }
+
+    //For debugging water
+    public const bool fDebug = false;
 
     //Layers the water should collide with
     public LayerMask WaterCollisionLayers;

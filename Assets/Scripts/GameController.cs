@@ -2,9 +2,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour {
+
     public static GameController Current;
+
+    public GameController() {
+        Current = this;
+    }
+
+    void Awake() {
+        Current = this;
+        
+        //QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = -1;
+    }
 
     [Header("Debug")]
     public bool bIsPaused = false;
@@ -13,8 +26,11 @@ public class GameController : MonoBehaviour {
     public int NumberOfDays = 7;
     public int DayLength = 10; //How long each day is in seconds
     public int StartingCredits = 1000;
+    public int CreditsPerDay = 200; //How many credits the player gets each day
     public int LoadingTime = 2;
+    public int BuildingsToProtect = 5;
     [Header("UI References")]
+    public Canvas InGameUICanvas;
     public Button ResumeButton;
     public Button[] BuildingButtons;
     public Slider DaySlider;
@@ -23,9 +39,12 @@ public class GameController : MonoBehaviour {
     public Image BackgroundImage;
     public Text ObjectivesText;
     public GameObject LoadingPanel;
+    public GameObject IntroPanel;
     public GameObject CursorText;
     public GameObject ContextPanel;
     public GameObject SliderMarker;
+    public Text TaskText;
+    public GameObject GameOverPanel;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
     public GameObject[] BarriersToDestory;
@@ -52,15 +71,6 @@ public class GameController : MonoBehaviour {
     //Cursor position when text was created
     Vector2 cursorTextPosition;
 
-    public GameController() {
-        Current = this;
-    }
-
-    void Awake() {
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = -1;
-    }
-
     void Start() {
         //Make buttons not interactable
         SetButtonInteractable(false);
@@ -76,6 +86,8 @@ public class GameController : MonoBehaviour {
         HideContextPanel();
         //Set day slider max value to number of days
         DaySlider.maxValue = NumberOfDays;
+        //Disable intro panel
+        IntroPanel.SetActive(false);
 
         //Create the markers on the slider signifying each day
         float width = DaySlider.GetComponent<RectTransform>().rect.width;
@@ -85,6 +97,12 @@ public class GameController : MonoBehaviour {
             GameObject newUI = (GameObject)Instantiate(SliderMarker, mainPanel);
             newUI.transform.position = DaySlider.transform.position - new Vector3(width / 2, 0) + new Vector3(widthIncrement * i, 10);
         }
+
+        //Hide in game UI
+        InGameUICanvas.enabled = false;
+
+        //Set task text
+        TaskText.text = "Protect at least <b>" + BuildingsToProtect + "</b> buildings";
     }
 
     void Update() {
@@ -95,12 +113,7 @@ public class GameController : MonoBehaviour {
         }
         //Else if panel is active, disable it, as no longer loading
         else if (LoadingPanel.activeSelf) {
-            LoadingPanel.SetActive(false);
-            //Start new day
-            dayCounter++;
-            timePassed = 0;
-            DaySlider.value = 0;
-            PauseGame();
+            StartFirstDay();
         }
 
         //If game is not paused
@@ -109,22 +122,11 @@ public class GameController : MonoBehaviour {
             DaySlider.value = (dayCounter - 1) + timePassed / DayLength;
 
             if (timePassed > DayLength) {
-                //End of day, pause game
-                PauseGame();
-                //Reset counter
-                timePassed = 0;
-                //Increase day counter
-                dayCounter++;
-                //Reset slider
-                //DaySlider.value = 0;
+                EndDay();
             }
+
             timePassed += Time.deltaTime;
         }
-
-        ////////////////Should put in a function
-        CreditsText.text = "§" + currentCredits;
-        DayText.text = "Day " + dayCounter;
-        ObjectivesText.text = objectivesStillActive + "/" + objectivesCount + " buildings standing";
 
         //Consider moving to input manager
         //If p is pressed, pause game
@@ -138,6 +140,7 @@ public class GameController : MonoBehaviour {
             WaterController.Current.RefreshWorld();
         }
 
+        //If mouse is over a UI element
         if (bIsDisplayingCursorText) {
             //Move towards upper right
             CursorText.transform.position = Vector2.MoveTowards(CursorText.transform.position, cursorTextPosition + new Vector2(200, 200), Time.deltaTime * 50);
@@ -155,6 +158,41 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    public void CloseIntroPanel() {
+        //Disable intro panel
+        IntroPanel.SetActive(false);
+        //Enable in game UI
+        InGameUICanvas.enabled = true;
+    }
+
+    void StartFirstDay() {
+        //Disable loading panel
+        LoadingPanel.SetActive(false);
+        //Enable intro panel
+        IntroPanel.SetActive(true);
+
+        //Reset day
+        dayCounter++;
+        timePassed = 0;
+        DaySlider.value = 0;
+        PauseGame();
+    }
+
+    //What happens when day ends
+    void EndDay() {
+        //End of day, pause game
+        PauseGame();
+        //Reset counter
+        timePassed = 0;
+        //Increase day counter
+        dayCounter++;
+        //Reset slider
+        //DaySlider.value = 0;
+
+        UpdateCredits(CreditsPerDay);
+    }
+
+    //Update player credits
     public void UpdateCredits(int amount) {
         currentCredits += amount;
         string creditChange;
@@ -172,6 +210,9 @@ public class GameController : MonoBehaviour {
         creditChange += Mathf.Abs(amount);
 
         DisplayCursorText(creditChange, 0.5f);
+
+        //Update UI
+        CreditsText.text = "§" + currentCredits;
     }
 
     public int GetCredits() {
@@ -189,7 +230,7 @@ public class GameController : MonoBehaviour {
         WaterController.Current.Pause();
 
         SetButtonInteractable(true);
-        UpdateObjectives();
+        //UpdateObjectives();
     }
 
     public void ResumeGame() {
@@ -211,6 +252,9 @@ public class GameController : MonoBehaviour {
         }
 
         SetButtonInteractable(false);
+
+        //Update UI
+        DayText.text = "Day " + dayCounter;
     }
 
     void SetButtonInteractable(bool canInteract) {
@@ -220,7 +264,7 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    void UpdateObjectives() {
+    public void UpdateObjectives() {
         List<GameObject> hasCollidedList = new List<GameObject>();
 
         //Check building is still alive
@@ -240,6 +284,35 @@ public class GameController : MonoBehaviour {
 
         //Clear the list
         hasCollidedList.Clear();
+
+        //Update UI
+        ObjectivesText.text = objectivesStillActive + "/" + objectivesCount + " buildings standing";
+
+        //Check if game has ended
+        if(objectivesStillActive < BuildingsToProtect) {
+            GameOver();
+        }
+    }
+
+    //When game is lost
+    void GameOver() {
+        //Pause game
+        PauseGame();
+        //Remove ability to play game
+        ResumeButton.interactable = false;
+        //Enable panel
+        GameOverPanel.SetActive(true);
+        //Disable game ui
+        InGameUICanvas.enabled = false;
+    }
+
+    public void RestartGame() {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+    }
+
+    //When level is won
+    void GameWin() {
+
     }
 
     public void DisplayCursorText(string text, float length) {

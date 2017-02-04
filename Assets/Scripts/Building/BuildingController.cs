@@ -6,6 +6,14 @@ public class BuildingController : MonoBehaviour {
 
     public static BuildingController Current;
 
+    public BuildingController() {
+        Current = this;
+    }
+
+    void Awake() {
+        Current = this;
+    }
+
     //Layers that the building should collide with when placing it
     public LayerMask BuildingCollisionLayers;
     public LayerMask FloorLayerMask;
@@ -25,10 +33,6 @@ public class BuildingController : MonoBehaviour {
     GameObject currentlySelectedPrefab;
     //A reference to the actual object we're placing
     GameObject currentlySelectedObject;
-
-    public BuildingController() {
-        Current = this;
-    }
 
     void Start() {
         backgroundColour = GameController.Current.BackgroundImage.color;
