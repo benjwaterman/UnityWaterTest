@@ -86,12 +86,15 @@ public abstract class Building : MonoBehaviour {
             }
         }
 
-        //If not constructing or demolishing
-        if (bIsAlive && !bIsConstructing && !bIsDemolishing) {
-            //If not a drain
-            if (!bIsDrain) {
-                //Check water next to this building
-                CheckAdjacentWater();
+        //If game is not paused
+        if (!GameController.Current.bIsPaused) {
+            //If not constructing or demolishing
+            if (bIsAlive && !bIsConstructing && !bIsDemolishing) {
+                //If not a drain
+                if (!bIsDrain) {
+                    //Check water next to this building
+                    CheckAdjacentWater();
+                }
             }
         }
     }
@@ -223,15 +226,28 @@ public abstract class Building : MonoBehaviour {
 
     //For comparing to water next to this building
     void CheckAdjacentWater() {
+        //If there is no water in array, return out of function
+        if(WaterController.Current.waterCellArray == null || WaterController.Current.waterCellArray.Length == 0) {
+            return;
+        }
+
+        //List to store any indicies that are out of range
+        List<Vector2i> indiciesToRemove = new List<Vector2i>();
+
         float highestVolume = 0;
         foreach (Vector2i vec2 in indiciesToCheck) {
             float volume = 0;
             try {
                 volume = WaterController.Current.waterCellArray[vec2.x, vec2.y].volume;
             }
-            catch (System.Exception) {
-                Debug.Log(vec2.x + " " + vec2.y);
-                throw;
+            catch (System.IndexOutOfRangeException) {
+                indiciesToRemove.Add(vec2);
+                Debug.Log("Index out of range. Removing: " + vec2.x + " " + vec2.y + " from indiciesToCheck");
+                //throw;
+            }
+            catch (System.NullReferenceException) {
+                Debug.Log("Null reference exception, most likely caused by restarting the level. Breaking out of loop...");
+                break;
             }
 
             //If is objective, any water destroys it
@@ -261,6 +277,13 @@ public abstract class Building : MonoBehaviour {
                 //Increase red depending on volume in relation to strength
                 Color color = thisRenderer.material.color;
                 thisRenderer.material.color = new Color(highestVolume / buildingStrength, color.g, color.b);
+            }
+        }
+
+        //Remove any indicies that are out of range
+        if (indiciesToRemove.Count > 0) {
+            foreach (Vector2i vec2 in indiciesToRemove) {
+                indiciesToCheck.Remove(vec2);
             }
         }
     }

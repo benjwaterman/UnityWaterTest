@@ -48,6 +48,7 @@ public class GameController : MonoBehaviour {
     public GameObject GameWinPanel;
     [Header("Objective References")]
     public Material DemolishedBuildingMaterial;
+    public Material RedTransparentMaterial;
     public GameObject[] BarriersToDestory;
 
     //Store a list of the objective buildings that need to be protected from water
@@ -124,6 +125,7 @@ public class GameController : MonoBehaviour {
         if(dayCounter == NumberOfDays + 1) {
             //Level has been beat
             GameWin();
+            dayCounter = -1;
         }
 
         //If game is not paused
@@ -316,7 +318,7 @@ public class GameController : MonoBehaviour {
     }
 
     public void RestartGame() {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     //When level is won
@@ -359,5 +361,9 @@ public class GameController : MonoBehaviour {
 
     public void HideContextPanel() {
         ContextPanel.SetActive(false);
+    }
+
+    public int GetDay() {
+        return dayCounter;
     }
 }
