@@ -4,18 +4,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour {
+    public static MenuController Current;
 
-	// Use this for initialization
-	void Start () {
-        LoadLevel(1);
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public MenuController() {
+        Current = this;
+    }
 
     public void LoadLevel(int levelIndex) {
         SceneManager.LoadScene(levelIndex);
+    }
+
+    public void QuitGame() {
+        Application.Quit();
     }
 }

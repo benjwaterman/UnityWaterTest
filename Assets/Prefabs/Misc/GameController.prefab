@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4657355958001520}
   - component: {fileID: 114021471460136252}
   - component: {fileID: 114586159263407702}
+  - component: {fileID: 114954992890223246}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -84,6 +85,7 @@ MonoBehaviour:
   GameWinPanel: {fileID: 0}
   DemolishedBuildingMaterial: {fileID: 2100000, guid: 5952c8a004fec8948a0084e3ca132665,
     type: 2}
+  RedTransparentMaterial: {fileID: 0}
   BarriersToDestory:
   - {fileID: 0}
 --- !u!114 &114586159263407702
@@ -116,3 +118,14 @@ MonoBehaviour:
   bIsPlacing: 0
   RefundPercentage: 0.8
   PlacedBuildings: []
+--- !u!114 &114954992890223246
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1947544440985550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8081e45dec9509643a5652d103fe819c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

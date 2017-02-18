@@ -727,7 +727,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingName: Drain
   buildingStrength: 100
-  buildingCost: 100
+  buildingCost: 80
   buildingDescription: 'A drain that constantly drains a small amount of water. BREAKBREAKDrain
     amount: 0.1/s'
   ConstructionSpeed: 5
@@ -735,6 +735,7 @@ MonoBehaviour:
   bIsObjectiveBuilding: 0
   bIsDrain: 1
   bIsAlive: 1
+  bIsPrePlaced: 0
   testPrefab: {fileID: 0}
   indiciesToCheck: []
   buildingIndicies: []

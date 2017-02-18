@@ -152,6 +152,11 @@ public class GameController : MonoBehaviour {
             WaterController.Current.RefreshWorld();
         }
 
+        //Return to main menu
+        if(Input.GetKeyDown(KeyCode.Backspace)) {
+            MenuController.Current.LoadLevel(0);
+        }
+
         //If mouse is over a UI element
         if (bIsDisplayingCursorText) {
             //Move towards upper right
@@ -182,6 +187,8 @@ public class GameController : MonoBehaviour {
         LoadingPanel.SetActive(false);
         //Enable intro panel
         IntroPanel.SetActive(true);
+        //Update objectives UI
+        UpdateObjectives();
 
         //Reset day
         dayCounter++;
