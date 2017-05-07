@@ -27,6 +27,11 @@ public class WaterController : MonoBehaviour {
 
     public WaterCell[,] waterCellArray = new WaterCell[gridSizeX, gridSizeY];
 
+    //Which water layout should be used
+    public int WaterLayout = 0;
+    //Constant water
+    public bool ConstantWaterFlow = false;
+
     //Store whether space is empty or not
     int[,] worldHeightArray = new int[gridSizeX, gridSizeY];
 
@@ -44,7 +49,6 @@ public class WaterController : MonoBehaviour {
     float baseFlowRate = 0.45f; //0.25
     float flowRate = 15;
     float timePassed = 0;
-    float meshTimer = 0;
 
     Direction[] neighboursToCompare = { Direction.xPositive, Direction.xNegative, Direction.zPositive, Direction.zNegative };
 
@@ -56,6 +60,9 @@ public class WaterController : MonoBehaviour {
 
     //Bool to store paused state
     bool bIsPaused = false;
+
+    //Make sure everything is initiallised before starting update
+    bool hasFinishedSetup = false;
 
     void Start() {
         //Initialise cell array
@@ -72,11 +79,7 @@ public class WaterController : MonoBehaviour {
         //UpdateCellVolume(90, 75, 1000);
 
         //Fill river
-        for (int i = 0; i < 22; i++) {
-            for (int j = 0; j < 101; j++) {
-                UpdateCellVolume(79 + i, j, 4);
-            }
-        }
+        SpawnWater(WaterLayout);
 
         //Initialise the mesh variables
         UpdateMesh();
@@ -90,9 +93,21 @@ public class WaterController : MonoBehaviour {
 
         //Apply mesh collider
         UpdateMeshCollider();
+
+        StartCoroutine(Wait());
+    }
+
+    //Wait before allowing update to start
+    IEnumerator Wait() {
+        yield return new WaitForSeconds(0.1f);
+        hasFinishedSetup = true;
     }
 
     void Update() {
+        if(!hasFinishedSetup) {
+            return;
+        }
+
         baseFlowRate = flowRate * Time.deltaTime;
 
         //If not paused update time passed
@@ -108,6 +123,11 @@ public class WaterController : MonoBehaviour {
             //Number of times to run sim per frame
             for (int pass = 0; pass < 1; pass++) {
                 UpdateCells();
+
+                //Keep updating cells to constantly be full
+                if(ConstantWaterFlow) {
+                    SpawnWater(WaterLayout);
+                }
             }
 
             //Updates height of gameobjects, for debugging
@@ -116,15 +136,67 @@ public class WaterController : MonoBehaviour {
 
         }
 
-        //Update mesh on a different timer
-        if (meshTimer > 0.0f) {
-            //UpdateMeshCollider();
-            UpdateMesh();
-            ApplyMesh();
+        //Update mesh
+        UpdateMesh();
+        ApplyMesh();
+    }
 
-            meshTimer = 0;
+    void SpawnWater(int layoutNumber) {
+        switch(layoutNumber) {
+            //Right river
+            case 0:
+                for (int x = 0; x < 22; x++) {
+                    for (int y = 0; y < 101; y++) {
+                        UpdateCellVolume(79 + x, y, 4);
+                    }
+                }
+                break;
+
+            //Four corners
+            case 1:
+                for (int x = 0; x < 22; x++) {
+                    for (int y = 0; y < 22; y++) {
+                        UpdateCellVolume(79 + x, y + 1, 4);
+                    }
+                }
+
+                for (int x = 0; x < 22; x++) {
+                    for (int y = 0; y < 22; y++) {
+                        UpdateCellVolume(1 + x, y + 1, 4);
+                    }
+                }
+
+                for (int x = 0; x < 22; x++) {
+                    for (int y = 0; y < 22; y++) {
+                        UpdateCellVolume(1 + x, 79 + y, 4);
+                    }
+                }
+
+                for (int x = 0; x < 22; x++) {
+                    for (int y = 0; y < 22; y++) {
+                        UpdateCellVolume(79 + x, 79 + y, 4);
+                    }
+                }
+                break;
+
+            //Small square
+            case 2:
+                for (int x = 0; x < 4; x++) {
+                    for (int y = 0; y < 4; y++) {
+                        UpdateCellVolume(48 + x, y + 48, 2);
+                    }
+                }
+                break;
+
+            //Right river
+            default:
+                for (int x = 0; x < 22; x++) {
+                    for (int y = 0; y < 101; y++) {
+                        UpdateCellVolume(79 + x, y, 4);
+                    }
+                }
+                break;
         }
-        meshTimer += Time.deltaTime;
     }
 
     public void Pause() {

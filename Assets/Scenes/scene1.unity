@@ -252,8 +252,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 176745490}
   m_LocalRotation: {x: -0, y: 0.70710576, z: -0, w: 0.70710784}
-  m_LocalPosition: {x: 58, y: 0.5, z: 36.5}
-  m_LocalScale: {x: 5, y: 1, z: 39}
+  m_LocalPosition: {x: 58, y: 1, z: 36.5}
+  m_LocalScale: {x: 5, y: 2, z: 39}
   m_Children: []
   m_Father: {fileID: 1640121642}
   m_RootOrder: 3
@@ -808,7 +808,7 @@ Prefab:
       propertyPath: m_Pivot.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 114759962770576766, guid: 19c61e359222f394d96a50f13284ea8d,
+    - target: {fileID: 114008206252503560, guid: 19c61e359222f394d96a50f13284ea8d,
         type: 2}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -818,7 +818,7 @@ Prefab:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1719218803}
-    - target: {fileID: 114008206252503560, guid: 19c61e359222f394d96a50f13284ea8d,
+    - target: {fileID: 114759962770576766, guid: 19c61e359222f394d96a50f13284ea8d,
         type: 2}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -1554,8 +1554,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 870109769}
   m_LocalRotation: {x: -0, y: 0.70710576, z: -0, w: 0.70710784}
-  m_LocalPosition: {x: 58, y: 0.5, z: 63.5}
-  m_LocalScale: {x: 5, y: 1, z: 39}
+  m_LocalPosition: {x: 58, y: 1, z: 63.5}
+  m_LocalScale: {x: 5, y: 2, z: 39}
   m_Children: []
   m_Father: {fileID: 1640121642}
   m_RootOrder: 6
@@ -2567,6 +2567,11 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1170665234}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1190586728 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1704298141022684, guid: 19c61e359222f394d96a50f13284ea8d,
+    type: 2}
+  m_PrefabInternal: {fileID: 401169418}
 --- !u!1 &1211222934
 GameObject:
   m_ObjectHideFlags: 0
@@ -2910,6 +2915,11 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 114954992890223246, guid: 38c3236abfe978f4bb4e3329a9147744,
+        type: 2}
+      propertyPath: HelpPanel
+      value: 
+      objectReference: {fileID: 1190586728}
     - target: {fileID: 114021471460136252, guid: 38c3236abfe978f4bb4e3329a9147744,
         type: 2}
       propertyPath: InGameUICanvas
@@ -3015,21 +3025,6 @@ Prefab:
       propertyPath: BarriersToDestory.Array.data[0]
       value: 
       objectReference: {fileID: 2038464603}
-    - target: {fileID: 114021471460136252, guid: 38c3236abfe978f4bb4e3329a9147744,
-        type: 2}
-      propertyPath: NumberOfDays
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 114021471460136252, guid: 38c3236abfe978f4bb4e3329a9147744,
-        type: 2}
-      propertyPath: BuildingsToProtect
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 114021471460136252, guid: 38c3236abfe978f4bb4e3329a9147744,
-        type: 2}
-      propertyPath: RedTransparentMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: f0efc01dacd11ae4d8b9f6722822414a, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 38c3236abfe978f4bb4e3329a9147744, type: 2}
   m_IsPrefabParent: 0

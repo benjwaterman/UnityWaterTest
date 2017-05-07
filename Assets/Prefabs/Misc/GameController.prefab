@@ -59,7 +59,7 @@ MonoBehaviour:
   StartingCredits: 500
   CreditsPerDay: 150
   LoadingTime: 2
-  BuildingsToProtect: 7
+  BuildingsToProtect: 6
   InGameUICanvas: {fileID: 0}
   ResumeButton: {fileID: 0}
   BuildingButtons:
@@ -85,7 +85,8 @@ MonoBehaviour:
   GameWinPanel: {fileID: 0}
   DemolishedBuildingMaterial: {fileID: 2100000, guid: 5952c8a004fec8948a0084e3ca132665,
     type: 2}
-  RedTransparentMaterial: {fileID: 0}
+  RedTransparentMaterial: {fileID: 2100000, guid: f0efc01dacd11ae4d8b9f6722822414a,
+    type: 2}
   BarriersToDestory:
   - {fileID: 0}
 --- !u!114 &114586159263407702
@@ -129,3 +130,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8081e45dec9509643a5652d103fe819c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HelpPanel: {fileID: 0}

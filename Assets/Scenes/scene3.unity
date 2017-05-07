@@ -437,9 +437,31 @@ Prefab:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1719218803}
+    - target: {fileID: 114597338686298712, guid: 19c61e359222f394d96a50f13284ea8d,
+        type: 2}
+      propertyPath: m_Text
+      value: "Director,\n\nToday we need you to manage a less populated area of the
+        city, but still a vital one. \n\nAlthough for the time being the river levees
+        look to be holding, we've had reports it might not stay that way for long.
+        Make sure to keep an eye on it."
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352378373883952, guid: 19c61e359222f394d96a50f13284ea8d, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 224973833106440278, guid: 19c61e359222f394d96a50f13284ea8d,
+        type: 2}
+      propertyPath: m_SizeDelta.y
+      value: 200
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 19c61e359222f394d96a50f13284ea8d, type: 2}
   m_IsPrefabParent: 0
+--- !u!1 &401169419 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1704298141022684, guid: 19c61e359222f394d96a50f13284ea8d,
+    type: 2}
+  m_PrefabInternal: {fileID: 401169418}
 --- !u!114 &589349453 stripped
 MonoBehaviour:
   m_PrefabParentObject: {fileID: 114753867625291988, guid: a946d67620fa1eb42b1b4e938665e756,
@@ -1669,6 +1691,11 @@ Prefab:
       propertyPath: RedTransparentMaterial
       value: 
       objectReference: {fileID: 2100000, guid: f0efc01dacd11ae4d8b9f6722822414a, type: 2}
+    - target: {fileID: 114954992890223246, guid: 38c3236abfe978f4bb4e3329a9147744,
+        type: 2}
+      propertyPath: HelpPanel
+      value: 
+      objectReference: {fileID: 401169419}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 38c3236abfe978f4bb4e3329a9147744, type: 2}
   m_IsPrefabParent: 0
