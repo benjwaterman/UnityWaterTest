@@ -1,2 +1,2 @@
-# UnityWaterTest
-Water simulation test for project
+# Water Simulation Game
+Final year project flood management game.
